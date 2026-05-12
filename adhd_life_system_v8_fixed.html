@@ -598,7 +598,7 @@ body{
       <span class="badge badge-active" id="spend-badge">ACTIVE</span>
     </div>
     <div class="spend-capped-banner" id="spend-capped-banner">
-      ₹150 DAILY CAP REACHED — RESETS TOMORROW
+      CAP REACHED — RESETS TOMORROW
     </div>
     <div class="spend-info" id="spend-info">
       <div class="spend-amt-block">
@@ -663,7 +663,6 @@ body{
   <div class="save-tag" id="save-status">STATE SAVED</div>
 </div>
 
-<!-- ── Note Modal ── -->
 <div id="note-modal-wrap" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-top-bar"></div>
@@ -679,7 +678,6 @@ body{
   </div>
 </div>
 
-<!-- ── Nudity Confirm Modal ── -->
 <div id="nudity-modal-wrap" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-top-bar red"></div>
@@ -702,7 +700,6 @@ body{
   </div>
 </div>
 
-<!-- ── Undo Confirm Modal ── -->
 <div id="undo-modal-wrap" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-top-bar red"></div>
@@ -717,7 +714,6 @@ body{
   </div>
 </div>
 
-<!-- ── Plan Action Modal ── -->
 <div id="plan-modal-wrap" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-top-bar amber"></div>
@@ -737,7 +733,7 @@ body{
 <script>
 // ── State ──────────────────────────────────────────────────────────────
 const DEFAULT = {
-  points:0, lifetimePoints:0,
+  points:0, lifetimePoints:0, lastUpdated: 0,
   nextDayPenalty:false,
   daily:{
     spentToday:0, dailyCap:150,
@@ -777,7 +773,6 @@ const SUPABASE_URL = 'https://diislxmomzytmgxkmeuw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpaXNseG1vbXp5dG1neGttZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQ1MTUsImV4cCI6MjA5MTc2MDUxNX0.LjX4uzAvLCP7eve11BBsez4WAgJ-oWRIMHhnLCvnP68';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Anonymous user ID (persisted in localStorage)
 function getUserId(){
   let id = localStorage.getItem('adhd_user_id');
   if(!id){ id = crypto.randomUUID(); localStorage.setItem('adhd_user_id', id); }
@@ -785,8 +780,9 @@ function getUserId(){
 }
 const USER_ID = getUserId();
 
-// Save: local first (instant), then sync to Supabase (debounced)
+// Save: Update timestamp on every save
 function saveState(){
+  S.lastUpdated = Date.now();
   localStorage.setItem('adhd_system_v1', JSON.stringify(S));
   document.getElementById('save-status').textContent = 'SAVED · ' + new Date().toLocaleTimeString();
   debouncedSync();
@@ -811,20 +807,21 @@ async function syncToCloud(){
   }
 }
 
-// Load: try cloud first, fall back to local
+// Load: Only pull from cloud if the timestamp is strictly newer
 async function loadStateAsync(){
-  const local = loadState(); // existing localStorage load
+  const local = loadState(); 
   try {
     const { data } = await sb.from('user_state')
       .select('state, updated_at')
       .eq('user_id', USER_ID)
       .single();
     if(data && data.state){
-      // Use cloud state if it's newer (has more lifetime points)
       const cloud = data.state;
-      if((cloud.lifetimePoints || 0) >= (local.lifetimePoints || 0)){
+      const cloudTime = cloud.lastUpdated || 0;
+      const localTime = local.lastUpdated || 0;
+      if(cloudTime > localTime){
         localStorage.setItem('adhd_system_v1', JSON.stringify(cloud));
-        return loadState(); // re-run migration/reset logic on cloud data
+        return loadState(); 
       }
     }
   } catch(e) { /* offline - use local */ }
@@ -1060,17 +1057,20 @@ function executeDeleteLog(logId){
 function renderStats(){
   document.getElementById('pts').textContent=S.points;
   document.getElementById('lifetime').textContent=S.lifetimePoints;
-  document.getElementById('spent-today').textContent=S.daily.spentToday;
+
+  // FIX: Wire the top UI strictly to food spending (spendUsed) 
+  document.getElementById('spent-today').textContent=S.daily.spendUsed; 
   document.getElementById('daily-cap').textContent=S.daily.dailyCap;
   document.getElementById('earned-today').textContent=S.daily.earnedToday;
   document.getElementById('action-count').textContent=S.daily.actionCount;
 
-  const spendPct=Math.min(100,Math.round((S.daily.spentToday/S.daily.dailyCap)*100));
+  // FIX: Calculate percentages using independent metrics
+  const spendPct=Math.min(100,Math.round((S.daily.spendUsed/S.daily.dailyCap)*100));
   const dopaPct=Math.min(100,Math.round((S.daily.dopaUsed/S.daily.dopaLimit)*100));
 
   document.getElementById('bar-spend').style.width=spendPct+'%';
   document.getElementById('bar-spend').className='bar '+(spendPct>=100?'bar-red':spendPct>=70?'bar-amber':'bar-amber');
-  document.getElementById('end-spend').textContent=S.daily.spentToday+' / '+S.daily.dailyCap;
+  document.getElementById('end-spend').textContent=S.daily.spendUsed+' / '+S.daily.dailyCap;
 
   document.getElementById('bar-dopa').style.width=dopaPct+'%';
   document.getElementById('bar-dopa').className='bar '+(S.daily.dopaLocked?'bar-red':dopaPct>=100?'bar-amber':dopaPct>=70?'bar-amber':'bar-cyan');
@@ -1328,13 +1328,12 @@ document.getElementById('nudity-modal-wrap').addEventListener('click',e=>{
 });
 
 // ── Spending ──────────────────────────────────────────────────────────
-const SPEND_CAP=150;
-
 function renderSpending(){
   const used=S.daily.spendUsed;
-  const rem=Math.max(0,SPEND_CAP-used);
+  const cap=S.daily.dailyCap;
+  const rem=Math.max(0,cap-used);
   const capped=rem<=0;
-  const pct=Math.min(100,Math.round((used/SPEND_CAP)*100));
+  const pct=Math.min(100,Math.round((used/cap)*100));
 
   const numEl=document.getElementById('spend-used-num');
   numEl.textContent=used;
@@ -1356,16 +1355,18 @@ function renderSpending(){
   [10,50,100,150].forEach(amt=>{
     const btn=document.getElementById('spend-btn-'+amt);
     if(!btn) return;
-    btn.disabled=(used+amt>SPEND_CAP)||(S.points<amt);
+    btn.disabled=(used+amt>cap)||(S.points<amt);
   });
 }
 
 function spend(amt){
-  if(S.daily.spendUsed+amt>SPEND_CAP){showToast('DAILY CAP OF ₹150 EXCEEDED','red');return;}
+  const cap=S.daily.dailyCap;
+  if(S.daily.spendUsed+amt>cap){showToast('DAILY CAP OF ₹'+cap+' EXCEEDED','red');return;}
   if(S.points<amt){showToast('NOT ENOUGH POINTS','red');return;}
 
   S.points=Math.max(0,S.points-amt);
   S.daily.spendUsed+=amt;
+  S.daily.spentToday+=amt; // Fix: Keep background metric accurate for un-doing
 
   const logId=Date.now();
   S.logs.push({
@@ -1374,7 +1375,7 @@ function spend(amt){
     reversible:true, logType:'spend', spendAmt:amt
   });
 
-  const rem=Math.max(0,SPEND_CAP-S.daily.spendUsed);
+  const rem=Math.max(0,cap-S.daily.spendUsed);
   saveState();renderStats();renderSpending();renderLogs();
   spawnFloatingPts(-amt, false);
   flashPoints();
