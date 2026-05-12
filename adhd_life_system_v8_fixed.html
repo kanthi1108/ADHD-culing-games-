@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>DISCIPLINE SYSTEM v0.8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#000;
+  --bg2:#080808;
+  --bg3:#0e0e0e;
+  --bg4:#141414;
+  --bg5:#1a1a1a;
+
+  --neon:#00ff88;
+  --neon-dim:rgba(0,255,136,0.12);
+  --neon-b:rgba(0,255,136,0.3);
+  --neon-glow:0 0 12px rgba(0,255,136,0.5),0 0 24px rgba(0,255,136,0.2);
+
+  --red:#ff3b3b;
+  --red-dim:rgba(255,59,59,0.1);
+  --red-b:rgba(255,59,59,0.3);
+  --red-glow:0 0 10px rgba(255,59,59,0.4);
+
+  --amber:#ffcc00;
+  --amber-dim:rgba(255,204,0,0.1);
+  --amber-b:rgba(255,204,0,0.3);
+  --amber-glow:0 0 10px rgba(255,204,0,0.35);
+
+  --cyan:#00ccff;
+  --cyan-dim:rgba(0,204,255,0.1);
+  --cyan-b:rgba(0,204,255,0.3);
+
+  --text:#e8e8e8;
+  --text2:#888;
+  --text3:#444;
+
+  --border:rgba(255,255,255,0.05);
+  --border2:rgba(255,255,255,0.1);
+
+  --radius:10px;
+  --radius-sm:6px;
+
+  --font-hud:'Share Tech Mono',monospace;
+  --font-ui:'Rajdhani',sans-serif;
+}
+
+body{
+  background:var(--bg);
+  background-image:
+    linear-gradient(rgba(0,255,136,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.015) 1px, transparent 1px);
+  background-size:40px 40px;
+  color:var(--text);
+  font-family:var(--font-ui);
+  font-size:15px;
+  line-height:1.5;
+  min-height:100vh;
+}
+
+.app{max-width:480px;margin:0 auto;padding:16px 14px 60px}
+
+/* ── Header ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;padding:0 2px;
+}
+.header h1{
+  font-family:var(--font-hud);
+  font-size:14px;letter-spacing:0.15em;
+  color:var(--text2);text-transform:uppercase;
+}
+.version{
+  font-family:var(--font-hud);font-size:10px;
+  color:var(--neon);padding:3px 9px;
+  border:1px solid var(--neon-b);border-radius:3px;
+  letter-spacing:0.1em;
+  box-shadow:0 0 8px rgba(0,255,136,0.15);
+}
+
+/* ── Points Section ── */
+.point-section{
+  text-align:center;
+  background:var(--bg2);
+  border:1px solid var(--neon-b);
+  border-radius:var(--radius);
+  padding:22px 16px 18px;
+  margin-bottom:12px;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 30px rgba(0,255,136,0.08);
+}
+.point-section::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--neon),transparent);
+  opacity:0.6;
+}
+.point-label{
+  font-family:var(--font-hud);font-size:10px;
+  color:var(--text3);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:8px;
+}
+.point-big{
+  font-family:var(--font-hud);
+  font-size:56px;font-weight:400;
+  color:var(--neon);line-height:1;
+  text-shadow:var(--neon-glow);
+  transition:transform 0.12s;
+  position:relative;
+}
+.point-flash{animation:ptFlash 0.35s ease}
+@keyframes ptFlash{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.1);text-shadow:0 0 20px rgba(0,255,136,0.9),0 0 40px rgba(0,255,136,0.5)}
+  100%{transform:scale(1)}
+}
+.point-sub{
+  font-family:var(--font-hud);font-size:11px;
+  color:var(--text3);margin-top:6px;letter-spacing:0.05em;
+}
+.point-sub span{color:var(--text2)}
+
+/* Floating points animation */
+.float-pts{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-family:var(--font-hud);font-size:22px;font-weight:600;
+  pointer-events:none;z-index:20;
+  animation:floatUp 0.9s ease-out forwards;
+}
+@keyframes floatUp{
+  0%{opacity:1;top:50%;transform:translateX(-50%) translateY(0)}
+  100%{opacity:0;top:10%;transform:translateX(-50%) translateY(-30px)}
+}
+
+/* ── Stat Grid ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:12px 14px;
+}
+.stat-label{font-family:var(--font-hud);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px}
+.stat-val{font-family:var(--font-hud);font-size:26px;font-weight:400;color:var(--text);line-height:1}
+.stat-val.neon{color:var(--neon);text-shadow:var(--neon-glow)}
+.stat-val.amber{color:var(--amber)}
+.stat-sub{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:4px}
+
+/* ── Card ── */
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:10px;
+  position:relative;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:16px;right:16px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);
+}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{
+  font-family:var(--font-hud);font-size:10px;
+  color:var(--text2);text-transform:uppercase;letter-spacing:0.15em;
+}
+
+/* ── Badges ── */
+.badge{font-family:var(--font-hud);font-size:10px;padding:3px 9px;border-radius:3px;border:1px solid;letter-spacing:0.05em;text-transform:uppercase}
+.badge-active{background:var(--neon-dim);color:var(--neon);border-color:var(--neon-b)}
+.badge-done{background:var(--bg4);color:var(--text3);border-color:var(--border2)}
+.badge-locked{background:var(--red-dim);color:var(--red);border-color:var(--red-b)}
+.badge-purple{background:var(--cyan-dim);color:var(--cyan);border-color:var(--cyan-b)}
+
+/* ── Progress Bars ── */
+.progress-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.progress-label{font-family:var(--font-hud);font-size:11px;color:var(--text2);min-width:88px;text-transform:uppercase;letter-spacing:0.06em}
+.bar-wrap{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.bar{height:100%;border-radius:2px;transition:width 0.5s ease}
+.bar-neon{background:var(--neon);box-shadow:0 0 6px rgba(0,255,136,0.6)}
+.bar-amber{background:var(--amber);box-shadow:0 0 6px rgba(255,204,0,0.5)}
+.bar-red{background:var(--red);box-shadow:0 0 6px rgba(255,59,59,0.5)}
+.bar-cyan{background:var(--cyan);box-shadow:0 0 6px rgba(0,204,255,0.5)}
+.bar-end{font-family:var(--font-hud);font-size:10px;color:var(--text3);min-width:56px;text-align:right}
+
+/* ── Flags Row ── */
+.flags-row{display:flex;gap:7px;flex-wrap:wrap}
+.flag{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--font-hud);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+  padding:4px 10px;border-radius:3px;
+  border:1px solid var(--border2);background:var(--bg3);color:var(--text3);
+  user-select:none;
+}
+.flag.done{background:var(--neon-dim);color:var(--neon);border-color:var(--neon-b)}
+.flag.invalid{background:var(--red-dim);color:var(--red);border-color:var(--red-b)}
+.flag-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* ── Action Buttons ── */
+.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.act-btn{
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:14px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:border-color 0.15s,background 0.12s,box-shadow 0.15s,transform 0.08s;
+  text-align:left;min-height:70px;
+}
+.act-btn:hover:not(:disabled){
+  border-color:var(--neon-b);
+  background:var(--bg4);
+  box-shadow:0 0 12px rgba(0,255,136,0.1);
+}
+.act-btn:active:not(:disabled){transform:scale(0.96)}
+.act-btn:disabled{opacity:0.3;cursor:not-allowed}
+.act-btn.done{opacity:0.3;cursor:not-allowed;border-style:dashed}
+.act-btn.invalidated{opacity:0.2;cursor:not-allowed;border-color:var(--red-b)}
+.act-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em}
+.act-pts{font-family:var(--font-hud);font-size:13px;color:var(--neon);font-weight:400;text-shadow:0 0 8px rgba(0,255,136,0.4)}
+.act-desc{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em}
+.act-done-label{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase}
+
+/* ── Chore Buttons ── */
+.chore-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--radius-sm);
+  cursor:pointer;margin-bottom:8px;
+  transition:border-color 0.15s,background 0.12s,box-shadow 0.15s;
+}
+.chore-btn:hover{border-color:var(--neon-b);background:var(--bg4);box-shadow:0 0 10px rgba(0,255,136,0.08)}
+.chore-btn:active{transform:scale(0.98)}
+.chore-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:0.03em}
+.chore-pts{font-family:var(--font-hud);font-size:13px;color:var(--neon);text-shadow:0 0 8px rgba(0,255,136,0.4)}
+.chore-btn:focus-visible{outline:1px solid var(--neon);outline-offset:2px}
+
+/* ── Forms ── */
+.add-chore-form{margin-top:10px;border-top:1px solid var(--border);padding-top:12px}
+.form-row{display:flex;gap:8px;align-items:center}
+.form-input{
+  flex:1;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--radius-sm);
+  padding:9px 12px;font-size:14px;font-family:var(--font-ui);
+  color:var(--text);outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.form-input:focus{border-color:var(--neon-b);box-shadow:0 0 8px rgba(0,255,136,0.1)}
+.form-input::placeholder{color:var(--text3)}
+.form-input-pts{width:72px;flex:none}
+.form-btn{
+  padding:9px 14px;
+  background:transparent;border:1px solid var(--neon-b);
+  border-radius:var(--radius-sm);
+  color:var(--neon);font-family:var(--font-ui);font-size:13px;font-weight:600;
+  cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;
+  transition:background 0.12s,box-shadow 0.12s;
+}
+.form-btn:hover{background:var(--neon-dim);box-shadow:0 0 8px rgba(0,255,136,0.2)}
+.form-btn:active{transform:scale(0.97)}
+
+/* ── Logs ── */
+.log-item{padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+.log-item:last-child{border-bottom:none;padding-bottom:0}
+.log-pts{font-family:var(--font-hud);font-size:13px;font-weight:400;min-width:38px}
+.log-body{flex:1}
+.log-action{font-size:13px;font-weight:600;color:var(--text);letter-spacing:0.02em}
+.log-note{font-family:var(--font-hud);font-size:11px;color:var(--text3);margin-top:1px}
+.log-time{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:0.05em}
+.log-empty{font-family:var(--font-hud);font-size:11px;color:var(--text3);padding:16px 0;text-align:center;text-transform:uppercase;letter-spacing:0.1em}
+
+/* Log delete / lock */
+.log-del-btn{
+  font-family:var(--font-hud);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;
+  color:var(--text3);cursor:pointer;
+  padding:4px 9px;border:1px solid var(--border2);
+  border-radius:3px;background:transparent;line-height:1;
+  flex-shrink:0;align-self:flex-start;
+  transition:color 0.15s,border-color 0.15s,box-shadow 0.15s;
+}
+.log-del-btn:hover{color:var(--red);border-color:var(--red-b);box-shadow:var(--red-glow)}
+.log-del-btn.confirm-state{color:var(--red);border-color:var(--red-b)}
+.log-lock-icon{
+  font-size:13px;color:var(--text3);flex-shrink:0;
+  align-self:flex-start;padding:4px 6px;
+  opacity:0.5;cursor:default;
+  title:'permanent — cannot be reversed';
+}
+
+/* ── Toast ── */
+.toast-container{position:absolute;top:12px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:20;width:92%}
+.toast{
+  background:var(--bg4);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:9px 14px;
+  font-family:var(--font-hud);font-size:12px;color:var(--text);
+  text-align:center;letter-spacing:0.05em;text-transform:uppercase;
+  opacity:0;transform:translateY(-8px);
+  transition:opacity 0.18s,transform 0.18s;margin-bottom:6px;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.green{border-color:var(--neon-b);color:var(--neon);background:var(--neon-dim)}
+.toast.red{border-color:var(--red-b);color:var(--red);background:var(--red-dim)}
+
+/* ── Modals ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,0.85);
+  align-items:center;justify-content:center;padding:16px;
+}
+.modal-overlay.open{display:flex}
+.modal-box{
+  background:var(--bg2);border-radius:var(--radius);
+  width:100%;max-width:360px;overflow:hidden;
+}
+.modal-top-bar{height:3px;background:linear-gradient(90deg,transparent,var(--neon),transparent)}
+.modal-top-bar.red{background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.modal-top-bar.amber{background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.modal-inner{padding:18px}
+.modal-title{font-family:var(--font-hud);font-size:14px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.modal-title.red{color:var(--red)}
+.modal-sub{font-family:var(--font-hud);font-size:11px;color:var(--text3);line-height:1.7;margin-bottom:14px;letter-spacing:0.03em}
+.modal-sub li{margin-left:14px}
+.modal-sub span{color:var(--red)}
+.modal-sub strong{color:var(--neon)}
+.modal-input{
+  width:100%;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  font-size:14px;font-family:var(--font-ui);
+  color:var(--text);outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.modal-input:focus{border-color:var(--neon-b);box-shadow:0 0 8px rgba(0,255,136,0.1)}
+.modal-penalty{font-family:var(--font-hud);font-size:11px;color:var(--amber);margin-top:8px;min-height:16px;letter-spacing:0.03em}
+.modal-btns{display:flex;gap:8px;margin-top:14px}
+.modal-btn-cancel{
+  flex:2;padding:11px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);
+  color:var(--text2);font-family:var(--font-ui);font-size:14px;font-weight:600;
+  cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;
+  transition:border-color 0.12s,color 0.12s;
+}
+.modal-btn-cancel:hover{border-color:var(--border2);color:var(--text)}
+.modal-btn-confirm{
+  flex:1;padding:11px;
+  background:var(--neon-dim);border:1px solid var(--neon-b);
+  border-radius:var(--radius-sm);
+  color:var(--neon);font-family:var(--font-ui);font-size:14px;font-weight:600;
+  cursor:pointer;letter-spacing:0.05em;text-transform:uppercase;
+  transition:background 0.12s,box-shadow 0.12s;
+}
+.modal-btn-confirm:hover{background:rgba(0,255,136,0.2);box-shadow:0 0 12px rgba(0,255,136,0.2)}
+.modal-btn-confirm.red{background:var(--red-dim);border-color:var(--red-b);color:var(--red)}
+.modal-btn-confirm.red:hover{background:rgba(255,59,59,0.2);box-shadow:var(--red-glow)}
+.modal-btn-confirm.amber{background:var(--amber-dim);border-color:var(--amber-b);color:var(--amber)}
+
+/* ── Dopamine ── */
+.dopa-info{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);margin-bottom:12px;
+  transition:border-color 0.2s;
+}
+.dopa-time-block{display:flex;align-items:baseline;gap:7px}
+.dopa-time-num{font-family:var(--font-hud);font-size:32px;font-weight:400;line-height:1;color:var(--cyan);transition:color 0.25s}
+.dopa-time-num.amber{color:var(--amber)}
+.dopa-time-num.zero{color:var(--red)}
+.dopa-time-unit{font-family:var(--font-hud);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em}
+.dopa-right{text-align:right}
+.dopa-used-line{font-family:var(--font-hud);font-size:11px;color:var(--text3);letter-spacing:0.04em}
+.dopa-used-strong{color:var(--text2);font-weight:400}
+.dopa-locked-banner{
+  display:none;align-items:center;justify-content:center;gap:7px;
+  background:var(--red-dim);border:1px solid var(--red-b);
+  border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;
+  font-family:var(--font-hud);font-size:11px;color:var(--red);text-align:center;
+  letter-spacing:0.08em;text-transform:uppercase;
+}
+.dopa-locked-banner.show{display:flex}
+.dopa-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.dopa-btn{
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:12px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:border-color 0.15s,background 0.12s,box-shadow 0.12s,transform 0.08s;
+  text-align:left;
+}
+.dopa-btn:hover:not(:disabled){background:var(--bg4)}
+.dopa-btn:active:not(:disabled){transform:scale(0.96)}
+.dopa-btn:disabled{opacity:0.25;cursor:not-allowed}
+.dopa-btn-name{font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em}
+.dopa-btn-cost{font-family:var(--font-hud);font-size:10px;display:block;letter-spacing:0.04em}
+.dopa-btn.use-btn:hover:not(:disabled){border-color:var(--cyan-b);box-shadow:0 0 10px rgba(0,204,255,0.12)}
+.dopa-btn.use-btn .dopa-btn-cost{color:var(--cyan)}
+.dopa-btn.impulse-btn:hover:not(:disabled){border-color:var(--amber-b);box-shadow:0 0 10px rgba(255,204,0,0.12)}
+.dopa-btn.impulse-btn .dopa-btn-cost{color:var(--amber)}
+.dopa-btn.nudity-btn{border-color:rgba(255,59,59,0.15)}
+.dopa-btn.nudity-btn .dopa-btn-name{color:var(--red)}
+.dopa-btn.nudity-btn .dopa-btn-cost{color:rgba(255,59,59,0.6)}
+.dopa-btn.nudity-btn:hover:not(:disabled){background:var(--red-dim);border-color:var(--red-b);box-shadow:var(--red-glow)}
+#dopa-card.locked{border-color:var(--red-b)}
+#dopa-card.locked .dopa-info{border-color:var(--red-b);background:var(--red-dim)}
+
+/* ── Spending ── */
+.spend-info{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);margin-bottom:10px;
+  transition:border-color 0.2s;
+}
+.spend-amt-block{display:flex;align-items:baseline;gap:4px}
+.spend-amt-num{font-family:var(--font-hud);font-size:32px;font-weight:400;line-height:1;color:var(--amber);transition:color 0.25s}
+.spend-amt-num.maxed{color:var(--red)}
+.spend-amt-unit{font-family:var(--font-hud);font-size:11px;color:var(--text3);text-transform:uppercase}
+.spend-right{text-align:right}
+.spend-rem-label{font-family:var(--font-hud);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase}
+.spend-rem-val{font-family:var(--font-hud);font-size:18px;color:var(--text2);line-height:1.3}
+.spend-cap-line{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:2px}
+.spend-bar-wrap{margin-bottom:12px}
+.spend-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.spend-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:13px 6px 10px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:border-color 0.15s,background 0.12s,box-shadow 0.12s,transform 0.08s;
+  text-align:center;gap:4px;
+}
+.spend-btn:hover:not(:disabled){border-color:var(--amber-b);background:var(--bg4);box-shadow:0 0 10px rgba(255,204,0,0.1)}
+.spend-btn:active:not(:disabled){transform:scale(0.96)}
+.spend-btn:disabled{opacity:0.25;cursor:not-allowed}
+.spend-btn-label{font-size:14px;font-weight:700;color:var(--text);display:block;letter-spacing:0.03em}
+.spend-btn-cost{font-family:var(--font-hud);font-size:10px;color:var(--amber);display:block}
+.spend-capped-banner{
+  display:none;align-items:center;justify-content:center;gap:7px;
+  background:var(--amber-dim);border:1px solid var(--amber-b);
+  border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;
+  font-family:var(--font-hud);font-size:11px;color:var(--amber);text-align:center;
+  letter-spacing:0.08em;text-transform:uppercase;
+}
+.spend-capped-banner.show{display:flex}
+#spend-card.capped{border-color:var(--amber-b)}
+#spend-card.capped .spend-info{border-color:var(--amber-b);background:var(--amber-dim)}
+
+/* ── Plans ── */
+.plan-item{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;
+  transition:border-color 0.2s;
+}
+.plan-item.complete{border-color:var(--neon-b)}
+.plan-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.plan-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:0.03em}
+.plan-meta{font-family:var(--font-hud);font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:0.04em}
+.plan-bar-row{margin-bottom:10px}
+.plan-btns{display:flex;gap:7px}
+.plan-action-btn{
+  flex:1;padding:8px 4px;background:var(--bg4);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);font-family:var(--font-ui);font-size:12px;font-weight:600;
+  cursor:pointer;color:var(--text2);
+  transition:background 0.1s,border-color 0.1s,box-shadow 0.1s,transform 0.08s;
+  letter-spacing:0.04em;text-transform:uppercase;line-height:1.2;
+}
+.plan-action-btn:hover:not(:disabled){background:var(--bg5)}
+.plan-action-btn:active:not(:disabled){transform:scale(0.97)}
+.plan-action-btn:disabled{opacity:0.25;cursor:not-allowed}
+.plan-action-btn.dep{color:var(--cyan);border-color:var(--cyan-b)}
+.plan-action-btn.dep:hover:not(:disabled){background:var(--cyan-dim);box-shadow:0 0 8px rgba(0,204,255,0.1)}
+.plan-action-btn.wdr{color:var(--amber);border-color:var(--amber-b)}
+.plan-action-btn.wdr:hover:not(:disabled){background:var(--amber-dim)}
+.plan-action-btn.del{color:var(--red);border-color:var(--red-b)}
+.plan-action-btn.del:hover:not(:disabled){background:var(--red-dim)}
+.add-plan-form{margin-top:10px;border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+
+/* ── Save Status ── */
+.save-tag{font-family:var(--font-hud);font-size:9px;color:var(--text3);text-align:center;margin-top:24px;letter-spacing:0.1em;text-transform:uppercase}
+
+/* ── Undo Confirm Inline ── */
+.log-del-pending{
+  color:var(--red)!important;border-color:var(--red-b)!important;
+  animation:pulse-red 0.6s ease infinite alternate;
+}
+@keyframes pulse-red{
+  from{box-shadow:none}
+  to{box-shadow:var(--red-glow)}
+}
+</style>
+
+<div class="app">
+  <div class="header">
+    <h1>DISCIPLINE.SYS</h1>
+    <span class="version">v0.8</span>
+  </div>
+
+  <div class="point-section" id="pts-section">
+    <div class="toast-container" id="toast-wrap"></div>
+    <div class="point-label">// CURRENT POINTS</div>
+    <div class="point-big" id="pts">0</div>
+    <div class="point-sub">LIFETIME &nbsp;<span id="lifetime">0</span> PTS EARNED</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="stat-label">// SPENT TODAY</div>
+      <div class="stat-val amber" id="spent-today">0</div>
+      <div class="stat-sub">OF <span id="daily-cap">100</span> CAP</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">// EARNED TODAY</div>
+      <div class="stat-val neon" id="earned-today">0</div>
+      <div class="stat-sub">FROM <span id="action-count">0</span> ACTIONS</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">// SYSTEM STATUS</span></div>
+    <div class="progress-row">
+      <span class="progress-label">SPEND</span>
+      <div class="bar-wrap"><div class="bar bar-amber" id="bar-spend" style="width:0%"></div></div>
+      <span class="bar-end" id="end-spend">0 / 100</span>
+    </div>
+    <div class="progress-row" style="margin-bottom:14px">
+      <span class="progress-label">DOPAMINE</span>
+      <div class="bar-wrap"><div class="bar bar-cyan" id="bar-dopa" style="width:0%"></div></div>
+      <span class="bar-end" id="end-dopa">0 / 60</span>
+    </div>
+    <div class="flags-row" id="flags-row">
+      <div class="flag" id="flag-diet"><span class="flag-dot"></span>DIET</div>
+      <div class="flag" id="flag-workout"><span class="flag-dot"></span>WORKOUT</div>
+      <div class="flag" id="flag-sleep"><span class="flag-dot"></span>SLEEP</div>
+      <div class="flag" id="flag-wake"><span class="flag-dot"></span>WAKE</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">// ACTION TERMINAL</span>
+      <span class="badge badge-purple" id="actions-badge">READY</span>
+    </div>
+    <div class="actions-grid" id="actions-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">// CUSTOM CHORES</span>
+      <span class="badge badge-purple" id="chores-badge">0 DEFINED</span>
+    </div>
+    <div id="chores-list"></div>
+    <div class="add-chore-form">
+      <div class="form-row">
+        <input class="form-input" id="chore-name" placeholder="chore name" maxlength="40" />
+        <input class="form-input form-input-pts" id="chore-pts" type="number" placeholder="pts" min="1" max="999" />
+        <button class="form-btn" id="add-chore-btn">ADD</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="dopa-card">
+    <div class="card-header">
+      <span class="card-title">// DOPAMINE CONTROL</span>
+      <span class="badge badge-active" id="dopa-badge">ACTIVE</span>
+    </div>
+    <div class="dopa-locked-banner" id="dopa-locked-banner">
+      ⛔ LOCKED FOR TODAY — VIOLATION RECORDED
+    </div>
+    <div class="dopa-info" id="dopa-info">
+      <div class="dopa-time-block">
+        <span class="dopa-time-num" id="dopa-time-num">60</span>
+        <span class="dopa-time-unit">MIN LEFT</span>
+      </div>
+      <div class="dopa-right">
+        <div class="dopa-used-line"><span class="dopa-used-strong" id="dopa-used-val">0</span> / <span id="dopa-limit-val">60</span> MIN USED</div>
+      </div>
+    </div>
+    <div class="progress-row" style="margin-bottom:12px">
+      <span class="progress-label">USAGE</span>
+      <div class="bar-wrap"><div class="bar bar-cyan" id="bar-dopa2" style="width:0%"></div></div>
+      <span class="bar-end" id="end-dopa2">0%</span>
+    </div>
+    <div class="dopa-btns">
+      <button class="dopa-btn use-btn" id="dopa-use-btn" onclick="useDopamine()">
+        <span class="dopa-btn-name">USE 10 MIN</span>
+        <span class="dopa-btn-cost">−10 PTS</span>
+      </button>
+      <button class="dopa-btn impulse-btn" id="dopa-impulse-btn" onclick="dopamineImpulse()">
+        <span class="dopa-btn-name">IMPULSE</span>
+        <span class="dopa-btn-cost">&gt;10 SEC · −10 PTS</span>
+      </button>
+      <button class="dopa-btn nudity-btn" id="dopa-nudity-btn" onclick="dopamineNudity()">
+        <span class="dopa-btn-name">NUDITY</span>
+        <span class="dopa-btn-cost">−20 PTS · LOCK</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card" id="spend-card">
+    <div class="card-header">
+      <span class="card-title">// SPENDING SYSTEM</span>
+      <span class="badge badge-active" id="spend-badge">ACTIVE</span>
+    </div>
+    <div class="spend-capped-banner" id="spend-capped-banner">
+      ₹150 DAILY CAP REACHED — RESETS TOMORROW
+    </div>
+    <div class="spend-info" id="spend-info">
+      <div class="spend-amt-block">
+        <span class="spend-amt-num" id="spend-used-num">0</span>
+        <span class="spend-amt-unit">₹ SPENT</span>
+      </div>
+      <div class="spend-right">
+        <div class="spend-rem-label">REMAINING TODAY</div>
+        <div class="spend-rem-val" id="spend-rem-val">₹150</div>
+        <div class="spend-cap-line">OF ₹150 CAP</div>
+      </div>
+    </div>
+    <div class="spend-bar-wrap">
+      <div class="bar-wrap"><div class="bar bar-amber" id="bar-spending" style="width:0%"></div></div>
+    </div>
+    <div class="spend-btns">
+      <button class="spend-btn" id="spend-btn-10" onclick="spend(10)">
+        <span class="spend-btn-label">₹10</span>
+        <span class="spend-btn-cost">−10 PTS</span>
+      </button>
+      <button class="spend-btn" id="spend-btn-50" onclick="spend(50)">
+        <span class="spend-btn-label">₹50</span>
+        <span class="spend-btn-cost">−50 PTS</span>
+      </button>
+      <button class="spend-btn" id="spend-btn-100" onclick="spend(100)">
+        <span class="spend-btn-label">₹100</span>
+        <span class="spend-btn-cost">−100 PTS</span>
+      </button>
+      <button class="spend-btn" id="spend-btn-150" onclick="spend(150)">
+        <span class="spend-btn-label">₹150</span>
+        <span class="spend-btn-cost">−150 PTS</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card" id="plans-card">
+    <div class="card-header">
+      <span class="card-title">// PLANS</span>
+      <span class="badge badge-purple" id="plans-badge">0 ACTIVE</span>
+    </div>
+    <div id="plans-list"></div>
+    <div class="add-plan-form">
+      <div class="form-row">
+        <input class="form-input" id="plan-name" placeholder="goal name" maxlength="40" />
+        <input class="form-input form-input-pts" id="plan-target" type="number" placeholder="target pts" min="1" max="999999" style="width:100px" />
+      </div>
+      <div class="form-row">
+        <input class="form-input" id="plan-date" type="date" style="flex:1;color:var(--text2)" />
+        <button class="form-btn" id="add-plan-btn">ADD PLAN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">// EVENT LOG</span>
+      <span class="badge badge-done" id="log-badge">0 ENTRIES</span>
+    </div>
+    <div id="log-list"></div>
+  </div>
+
+  <div class="save-tag" id="save-status">STATE SAVED</div>
+</div>
+
+<!-- ── Note Modal ── -->
+<div id="note-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar"></div>
+    <div class="modal-inner">
+      <div class="modal-title" id="note-modal-title">LOG NOTE</div>
+      <div class="modal-sub">Add context (optional)</div>
+      <textarea class="modal-input" id="note-input" placeholder="what happened? (optional)" style="resize:none;height:70px"></textarea>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" id="note-skip">SKIP</button>
+        <button class="modal-btn-confirm" id="note-confirm">CONFIRM</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Nudity Confirm Modal ── -->
+<div id="nudity-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar red"></div>
+    <div class="modal-inner">
+      <div class="modal-title red">⚠ CONFIRM: NUDITY VIOLATION</div>
+      <div class="modal-sub">
+        This action will immediately:<br>
+        <ul>
+          <li><span>LOCK DOPAMINE</span> for the rest of today</li>
+          <li><span>DEDUCT 20 POINTS</span> from your balance</li>
+          <li><span>REDUCE TOMORROW'S DOPAMINE LIMIT</span> to 30 min</li>
+        </ul>
+        <br>⛔ THIS ACTION IS PERMANENT AND CANNOT BE REVERSED.
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" style="flex:2" id="nudity-cancel">CANCEL</button>
+        <button class="modal-btn-confirm red" style="flex:1" id="nudity-confirm">CONFIRM</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Undo Confirm Modal ── -->
+<div id="undo-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar red"></div>
+    <div class="modal-inner">
+      <div class="modal-title">REVERSE ACTION</div>
+      <div class="modal-sub" id="undo-modal-sub">This will reverse the action. Continue?</div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" id="undo-cancel">CANCEL</button>
+        <button class="modal-btn-confirm red" id="undo-confirm">REVERSE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Plan Action Modal ── -->
+<div id="plan-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar amber"></div>
+    <div class="modal-inner">
+      <div class="modal-title" id="plan-modal-title">DEPOSIT</div>
+      <div class="modal-sub" id="plan-modal-sub"></div>
+      <input class="modal-input" id="plan-modal-amount" type="number" placeholder="amount" min="1" style="width:100%" />
+      <div class="modal-penalty" id="plan-modal-penalty"></div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" id="plan-modal-cancel">CANCEL</button>
+        <button class="modal-btn-confirm" id="plan-modal-confirm">CONFIRM</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+const DEFAULT = {
+  points:0, lifetimePoints:0,
+  nextDayPenalty:false,
+  daily:{
+    spentToday:0, dailyCap:150,
+    spendUsed:0,
+    dopaUsed:0, dopaLimit:60, dopaLocked:false,
+    earnedToday:0, actionCount:0,
+    flags:{diet:false,workout:false,sleep:false,wake:false,dietInvalid:false},
+    date:new Date().toDateString()
+  },
+  plans:[], chores:[], logs:[]
+};
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem('adhd_system_v1');
+    if(!raw) return JSON.parse(JSON.stringify(DEFAULT));
+    const saved = JSON.parse(raw);
+    const today = new Date().toDateString();
+    if(!saved.daily || saved.daily.date !== today){
+      if(saved.nextDayPenalty){
+        saved.points = Math.max(0, (saved.points||0) - 50);
+      }
+      saved.daily = {...JSON.parse(JSON.stringify(DEFAULT.daily)), date: today};
+      saved.nextDayPenalty = false;
+    }
+    return {
+      ...JSON.parse(JSON.stringify(DEFAULT)),
+      ...saved,
+      daily: {...JSON.parse(JSON.stringify(DEFAULT.daily)), ...saved.daily}
+    };
+  } catch(e) {
+    return JSON.parse(JSON.stringify(DEFAULT));
+  }
+}
+
+const SUPABASE_URL = 'https://diislxmomzytmgxkmeuw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpaXNseG1vbXp5dG1neGttZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQ1MTUsImV4cCI6MjA5MTc2MDUxNX0.LjX4uzAvLCP7eve11BBsez4WAgJ-oWRIMHhnLCvnP68';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Anonymous user ID (persisted in localStorage)
+function getUserId(){
+  let id = localStorage.getItem('adhd_user_id');
+  if(!id){ id = crypto.randomUUID(); localStorage.setItem('adhd_user_id', id); }
+  return id;
+}
+const USER_ID = getUserId();
+
+// Save: local first (instant), then sync to Supabase (debounced)
+function saveState(){
+  localStorage.setItem('adhd_system_v1', JSON.stringify(S));
+  document.getElementById('save-status').textContent = 'SAVED · ' + new Date().toLocaleTimeString();
+  debouncedSync();
+}
+
+let _syncTimer = null;
+function debouncedSync(){
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(syncToCloud, 1500); // 1.5s debounce
+}
+
+async function syncToCloud(){
+  try {
+    await sb.from('user_state').upsert({
+      user_id: USER_ID,
+      state: S,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    document.getElementById('save-status').textContent = 'SYNCED · ' + new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById('save-status').textContent = 'SYNC FAILED (OFFLINE)';
+  }
+}
+
+// Load: try cloud first, fall back to local
+async function loadStateAsync(){
+  const local = loadState(); // existing localStorage load
+  try {
+    const { data } = await sb.from('user_state')
+      .select('state, updated_at')
+      .eq('user_id', USER_ID)
+      .single();
+    if(data && data.state){
+      // Use cloud state if it's newer (has more lifetime points)
+      const cloud = data.state;
+      if((cloud.lifetimePoints || 0) >= (local.lifetimePoints || 0)){
+        localStorage.setItem('adhd_system_v1', JSON.stringify(cloud));
+        return loadState(); // re-run migration/reset logic on cloud data
+      }
+    }
+  } catch(e) { /* offline - use local */ }
+  return local;
+}
+
+let S=loadState();
+let pendingAction=null;
+
+// ── Actions ────────────────────────────────────────────────────────────
+const ACTIONS=[
+  {id:'deep_work',name:'Deep Work',pts:10,desc:'~45 min focused',group:'study',once:false},
+  {id:'sneak_study',name:'Sneak Study',pts:3,desc:'~15 min light',group:'study',once:false},
+  {id:'workout',name:'Workout',pts:10,desc:'Full session',group:'body',once:true,flag:'workout'},
+  {id:'diet',name:'Diet',pts:10,desc:'Clean eating',group:'body',once:true,flag:'diet'},
+  {id:'wake',name:'Wake',pts:10,desc:'On time',group:'sleep',once:true,flag:'wake'},
+  {id:'sleep',name:'Sleep',pts:10,desc:'On schedule',group:'sleep',once:true,flag:'sleep'},
+];
+
+function isDisabled(a){
+  if(a.id==='diet') return S.daily.flags.dietInvalid || S.daily.flags.diet;
+  if(a.once && a.flag) return S.daily.flags[a.flag];
+  return false;
+}
+function getStatusLabel(a){
+  if(a.id==='diet' && S.daily.flags.dietInvalid) return 'INVALIDATED';
+  if(a.once && a.flag && S.daily.flags[a.flag]) return 'DONE TODAY';
+  return null;
+}
+
+// ── Render Actions ────────────────────────────────────────────────────
+function renderActions(){
+  const grid=document.getElementById('actions-grid');
+  grid.innerHTML='';
+  let doneCount=0;
+  ACTIONS.forEach(a=>{
+    const disabled=isDisabled(a);
+    const label=getStatusLabel(a);
+    if(disabled) doneCount++;
+    const btn=document.createElement('button');
+    btn.className='act-btn'+(disabled?(a.id==='diet'&&S.daily.flags.dietInvalid?' invalidated':' done'):'');
+    btn.disabled=disabled;
+    btn.innerHTML=`<span class="act-name">${a.name}</span><span class="act-pts">+${a.pts} PTS</span><span class="act-desc">${a.desc}</span>${label?`<span class="act-done-label">${label}</span>`:''}`;
+    if(!disabled) btn.addEventListener('click',()=>triggerAction(a));
+    grid.appendChild(btn);
+  });
+  const badge=document.getElementById('actions-badge');
+  const total=ACTIONS.filter(a=>a.once).length;
+  badge.textContent=doneCount===0?'READY':doneCount+'/'+total+' DONE';
+  badge.className='badge '+(doneCount===total?'badge-done':'badge-purple');
+}
+
+// ── Render Chores ─────────────────────────────────────────────────────
+function renderChores(){
+  const list=document.getElementById('chores-list');
+  list.innerHTML='';
+  if(!S.chores.length){
+    list.innerHTML='<div class="log-empty">NO CHORES YET — ADD ONE BELOW</div>';
+    document.getElementById('chores-badge').textContent='0 DEFINED';
+    return;
+  }
+  S.chores.forEach((c,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='chore-btn';
+    wrap.setAttribute('role','button');
+    wrap.setAttribute('tabindex','0');
+
+    const left=document.createElement('div');
+    left.style.cssText='display:flex;flex-direction:column;gap:2px;pointer-events:none';
+    left.innerHTML=`<span class="chore-name" style="pointer-events:none">${escHtml(c.name)}</span><span style="font-family:var(--font-hud);font-size:10px;color:var(--text3);pointer-events:none;text-transform:uppercase;letter-spacing:0.06em">TAP TO LOG</span>`;
+
+    const right=document.createElement('div');
+    right.style.cssText='display:flex;align-items:center;gap:10px;flex-shrink:0';
+
+    const ptsSpan=document.createElement('span');
+    ptsSpan.className='chore-pts';
+    ptsSpan.style.cssText='pointer-events:none';
+    ptsSpan.textContent='+'+c.pts+' PTS';
+
+    const delBtn=document.createElement('button');
+    delBtn.textContent='DEL';
+    delBtn.style.cssText='font-family:var(--font-hud);font-size:10px;color:var(--text3);cursor:pointer;padding:4px 8px;border:1px solid var(--border2);border-radius:3px;background:transparent;line-height:1;letter-spacing:0.04em;text-transform:uppercase;transition:color 0.15s,border-color 0.15s';
+    delBtn.setAttribute('aria-label','delete chore '+c.name);
+    delBtn.addEventListener('mouseenter',()=>{delBtn.style.color='var(--red)';delBtn.style.borderColor='var(--red-b)'});
+    delBtn.addEventListener('mouseleave',()=>{delBtn.style.color='';delBtn.style.borderColor=''});
+    delBtn.addEventListener('click',(e)=>{e.stopPropagation();deleteChore(i);});
+
+    right.appendChild(ptsSpan);
+    right.appendChild(delBtn);
+    wrap.appendChild(left);
+    wrap.appendChild(right);
+
+    wrap.addEventListener('click',()=>triggerChore(i));
+    wrap.addEventListener('keydown',(e)=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();triggerChore(i);}
+    });
+    list.appendChild(wrap);
+  });
+  document.getElementById('chores-badge').textContent=S.chores.length+' DEFINED';
+}
+
+// ── Render Logs ───────────────────────────────────────────────────────
+let pendingUndoLogId = null;
+
+function renderLogs(){
+  const list=document.getElementById('log-list');
+  if(!S.logs.length){list.innerHTML='<div class="log-empty">NO ACTIONS LOGGED YET</div>';return;}
+  const recent=[...S.logs].reverse().slice(0,20);
+  list.innerHTML='';
+  const todayStr=new Date().toDateString();
+
+  recent.forEach(l=>{
+    const d=document.createElement('div');
+    d.className='log-item';
+    const t=new Date(l.ts);
+    const tStr=t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const dateStr=t.toDateString()===todayStr?'TODAY':t.toLocaleDateString([],{month:'short',day:'numeric'}).toUpperCase();
+    const isToday=t.toDateString()===todayStr;
+    const logId=l.id||l.ts;
+
+    const ptsColor=l.pts>=0?'var(--neon)':'var(--red)';
+    const ptsText=(l.pts>=0?'+':'')+l.pts;
+
+    // Determine if reversible (default true for old logs without the field)
+    const reversible = (l.reversible !== false);
+
+    const ptsEl=`<span class="log-pts" style="color:${ptsColor};text-shadow:${l.pts>=0?'0 0 8px rgba(0,255,136,0.4)':'0 0 8px rgba(255,59,59,0.4)'}">${ptsText}</span>`;
+    const bodyEl=`<div class="log-body"><div class="log-action">${escHtml(l.action)}</div>${l.note?`<div class="log-note">${escHtml(l.note)}</div>`:''}<div class="log-time">${dateStr} · ${tStr}</div></div>`;
+
+    let actionEl='';
+    if(isToday){
+      if(reversible){
+        actionEl=`<button class="log-del-btn" data-lid="${logId}" aria-label="reverse log entry">UNDO</button>`;
+      } else {
+        actionEl=`<span class="log-lock-icon" title="Permanent — cannot be reversed" aria-label="permanent action">🔒</span>`;
+      }
+    }
+
+    d.innerHTML=ptsEl+bodyEl+actionEl;
+
+    if(isToday && reversible){
+      const btn=d.querySelector('.log-del-btn');
+      btn.addEventListener('click',()=>requestUndoLog(logId,l));
+    }
+
+    list.appendChild(d);
+  });
+  document.getElementById('log-badge').textContent=S.logs.length+' ENTRIES';
+}
+
+// ── Undo Logic ────────────────────────────────────────────────────────
+function requestUndoLog(logId, logEntry){
+  pendingUndoLogId = logId;
+  const actionName = logEntry.action || 'this action';
+  const ptsStr = (logEntry.pts >= 0 ? '+' : '') + logEntry.pts + ' pts';
+  document.getElementById('undo-modal-sub').innerHTML =
+    `Reverse <strong style="color:var(--text)">${escHtml(actionName)}</strong> (${ptsStr})?<br><br>This will undo all effects of this action.`;
+  document.getElementById('undo-modal-wrap').classList.add('open');
+}
+
+function closeUndoModal(){
+  document.getElementById('undo-modal-wrap').classList.remove('open');
+  pendingUndoLogId = null;
+}
+
+document.getElementById('undo-confirm').addEventListener('click',()=>{
+  if(pendingUndoLogId != null){
+    executeDeleteLog(pendingUndoLogId);
+    closeUndoModal();
+  }
+});
+document.getElementById('undo-cancel').addEventListener('click', closeUndoModal);
+document.getElementById('undo-modal-wrap').addEventListener('click', e=>{
+  if(e.target === document.getElementById('undo-modal-wrap')) closeUndoModal();
+});
+
+function executeDeleteLog(logId){
+  const idx=S.logs.findIndex(l=>(l.id||l.ts)===logId);
+  if(idx===-1){showToast('LOG NOT FOUND','red');return;}
+  const l=S.logs[idx];
+
+  // Safety: only allow reversal for today's logs
+  if(new Date(l.ts).toDateString()!==new Date().toDateString()){
+    showToast('CAN ONLY REVERSE TODAY\'S LOGS','red');return;
+  }
+  // Safety: non-reversible logs cannot be deleted
+  if(l.reversible === false){
+    showToast('THIS ACTION CANNOT BE REVERSED','red');return;
+  }
+
+  // Reverse points earned/spent
+  if(l.pts > 0){
+    // Was a gain — deduct back
+    S.points = Math.max(0, S.points - l.pts);
+    S.lifetimePoints = Math.max(0, S.lifetimePoints - l.pts);
+    S.daily.earnedToday = Math.max(0, (S.daily.earnedToday||0) - l.pts);
+    S.daily.actionCount = Math.max(0, (S.daily.actionCount||0) - 1);
+  } else if(l.pts < 0){
+    // Was a cost — restore back
+    S.points -= l.pts; // pts is negative, so this adds
+    // spentToday reversal handled below per logType
+  }
+
+  // Reverse daily flag
+  if(l.flag) S.daily.flags[l.flag]=false;
+
+  // Reverse spending (spend log)
+  if(l.logType === 'spend' && l.spendAmt){
+    S.daily.spendUsed = Math.max(0, S.daily.spendUsed - l.spendAmt);
+    S.daily.spentToday = Math.max(0, S.daily.spentToday - l.spendAmt);
+  }
+
+  // Reverse dopamine usage
+  if(l.logType === 'dopa' && l.dopaAmt){
+    S.daily.dopaUsed = Math.max(0, S.daily.dopaUsed - l.dopaAmt);
+    S.daily.spentToday = Math.max(0, S.daily.spentToday - Math.abs(l.pts));
+  }
+
+  // Reverse impulse (cost only, no dopa usage)
+  if(l.logType === 'impulse'){
+    S.daily.spentToday = Math.max(0, S.daily.spentToday - Math.abs(l.pts));
+  }
+
+  S.logs.splice(idx,1);
+  saveState();
+  render();
+  spawnFloatingPts(l.pts >= 0 ? -l.pts : Math.abs(l.pts), l.pts >= 0);
+  flashPoints();
+  showToast('ACTION REVERSED · '+l.action,'');
+}
+
+// ── Render Stats ──────────────────────────────────────────────────────
+function renderStats(){
+  document.getElementById('pts').textContent=S.points;
+  document.getElementById('lifetime').textContent=S.lifetimePoints;
+  document.getElementById('spent-today').textContent=S.daily.spentToday;
+  document.getElementById('daily-cap').textContent=S.daily.dailyCap;
+  document.getElementById('earned-today').textContent=S.daily.earnedToday;
+  document.getElementById('action-count').textContent=S.daily.actionCount;
+
+  const spendPct=Math.min(100,Math.round((S.daily.spentToday/S.daily.dailyCap)*100));
+  const dopaPct=Math.min(100,Math.round((S.daily.dopaUsed/S.daily.dopaLimit)*100));
+
+  document.getElementById('bar-spend').style.width=spendPct+'%';
+  document.getElementById('bar-spend').className='bar '+(spendPct>=100?'bar-red':spendPct>=70?'bar-amber':'bar-amber');
+  document.getElementById('end-spend').textContent=S.daily.spentToday+' / '+S.daily.dailyCap;
+
+  document.getElementById('bar-dopa').style.width=dopaPct+'%';
+  document.getElementById('bar-dopa').className='bar '+(S.daily.dopaLocked?'bar-red':dopaPct>=100?'bar-amber':dopaPct>=70?'bar-amber':'bar-cyan');
+  document.getElementById('end-dopa').textContent=S.daily.dopaUsed+' / '+S.daily.dopaLimit;
+
+  const fd=S.daily.flags;
+  ['diet','workout','sleep','wake'].forEach(k=>{
+    const el=document.getElementById('flag-'+k);
+    if(k==='diet'&&fd.dietInvalid){el.className='flag invalid';el.innerHTML='<span class="flag-dot"></span>DIET ✕';}
+    else{el.className='flag'+(fd[k]?' done':'');el.innerHTML='<span class="flag-dot"></span>'+k.toUpperCase();}
+  });
+}
+
+function render(){
+  renderStats();
+  renderActions();
+  renderChores();
+  renderPlans();
+  renderLogs();
+  renderDopamine();
+  renderSpending();
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+function showToast(msg,type){
+  const wrap=document.getElementById('toast-wrap');
+  const t=document.createElement('div');
+  t.className='toast '+(type||'');
+  t.textContent=msg;
+  wrap.appendChild(t);
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{t.classList.add('show');})});
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),220);},2400);
+}
+
+// ── Points Flash + Float ──────────────────────────────────────────────
+function flashPoints(){
+  const el=document.getElementById('pts');
+  el.classList.remove('point-flash');
+  void el.offsetWidth;
+  el.classList.add('point-flash');
+}
+
+function spawnFloatingPts(delta, isGain){
+  const section = document.getElementById('pts-section');
+  const span = document.createElement('span');
+  span.className='float-pts';
+  span.textContent = (delta >= 0 ? '+' : '') + delta;
+  span.style.color = isGain ? 'var(--neon)' : 'var(--red)';
+  span.style.textShadow = isGain ? 'var(--neon-glow)' : 'var(--red-glow)';
+  section.appendChild(span);
+  setTimeout(()=>span.remove(), 950);
+}
+
+// ── Action Modal ──────────────────────────────────────────────────────
+function triggerAction(action){
+  pendingAction=action;
+  document.getElementById('note-modal-title').textContent='LOG: '+action.name.toUpperCase();
+  document.getElementById('note-input').value='';
+  document.getElementById('note-modal-wrap').classList.add('open');
+}
+
+function commitAction(note){
+  document.getElementById('note-modal-wrap').classList.remove('open');
+  if(!pendingAction) return;
+  const a=pendingAction;
+  pendingAction=null;
+
+  S.points+=a.pts;
+  S.lifetimePoints+=a.pts;
+  S.daily.earnedToday+=a.pts;
+  S.daily.actionCount+=1;
+
+  if(a.flag) S.daily.flags[a.flag]=true;
+
+  S.logs.push({
+    id:Date.now(), action:a.name, actionId:a.id||'',
+    pts:a.pts, flag:a.flag||null,
+    ts:Date.now(), note:note||'',
+    reversible:true,
+    logType: a.isChore ? 'chore' : 'action'
+  });
+
+  saveState(); render();
+  spawnFloatingPts(a.pts, true);
+  flashPoints();
+  showToast('+'+a.pts+' PTS · '+a.name.toUpperCase(),'green');
+}
+
+document.getElementById('note-confirm').addEventListener('click',()=>{
+  commitAction(document.getElementById('note-input').value.trim());
+});
+document.getElementById('note-skip').addEventListener('click',()=>commitAction(''));
+document.getElementById('note-modal-wrap').addEventListener('click',e=>{
+  if(e.target===document.getElementById('note-modal-wrap')) commitAction('');
+});
+
+// ── Chores ────────────────────────────────────────────────────────────
+function addChore(){
+  const nameEl=document.getElementById('chore-name');
+  const ptsEl=document.getElementById('chore-pts');
+  const name=nameEl.value.trim();
+  const ptsRaw=ptsEl.value.trim();
+  const pts=Math.floor(Number(ptsRaw));
+
+  if(!name){showToast('CHORE NAME IS REQUIRED','red');nameEl.focus();return;}
+  if(!ptsRaw||isNaN(pts)||pts<1){showToast('POINTS MUST BE ≥ 1','red');ptsEl.focus();return;}
+  if(pts>9999){showToast('MAX 9999 POINTS PER CHORE','red');ptsEl.focus();return;}
+  if(S.chores.some(c=>c.name.toLowerCase()===name.toLowerCase())){
+    showToast('CHORE ALREADY EXISTS','red');nameEl.focus();return;
+  }
+
+  S.chores.push({name,pts});
+  nameEl.value='';ptsEl.value='';nameEl.focus();
+  saveState();renderChores();
+  showToast('"'+name+'" ADDED · +'+pts+' PTS EACH','green');
+}
+
+document.getElementById('add-chore-btn').addEventListener('click',addChore);
+document.getElementById('chore-name').addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){e.preventDefault();
+    const ptsEl=document.getElementById('chore-pts');
+    if(!ptsEl.value.trim()) ptsEl.focus(); else addChore();
+  }
+});
+document.getElementById('chore-pts').addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){e.preventDefault();addChore();}
+});
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function triggerChore(i){
+  const c=S.chores[i];
+  if(!c) return;
+  pendingAction={id:'chore_'+Date.now(),name:c.name,pts:c.pts,once:false,isChore:true};
+  document.getElementById('note-modal-title').textContent='LOG CHORE: '+c.name.toUpperCase()+' (+'+c.pts+' PTS)';
+  document.getElementById('note-input').value='';
+  document.getElementById('note-modal-wrap').classList.add('open');
+}
+
+function deleteChore(i){
+  S.chores.splice(i,1);saveState();renderChores();showToast('CHORE REMOVED','');
+}
+
+// ── Dopamine ──────────────────────────────────────────────────────────
+function renderDopamine(){
+  const d=S.daily;
+  const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
+  const locked=d.dopaLocked;
+  const limitReached=rem<=0;
+  const noPoints=S.points<10;
+
+  // Inner dopa progress bar
+  const dopaPct=Math.min(100,Math.round((d.dopaUsed/d.dopaLimit)*100));
+  const bar2=document.getElementById('bar-dopa2');
+  bar2.style.width=dopaPct+'%';
+  bar2.className='bar '+(locked?'bar-red':dopaPct>=100?'bar-red':dopaPct>=70?'bar-amber':'bar-cyan');
+  document.getElementById('end-dopa2').textContent=dopaPct+'%';
+
+  const timeEl=document.getElementById('dopa-time-num');
+  timeEl.textContent=rem;
+  timeEl.className='dopa-time-num'+(rem===0?' zero':rem<=20?' amber':'');
+
+  document.getElementById('dopa-used-val').textContent=d.dopaUsed;
+  document.getElementById('dopa-limit-val').textContent=d.dopaLimit;
+
+  const badge=document.getElementById('dopa-badge');
+  if(locked){badge.className='badge badge-locked';badge.textContent='LOCKED';}
+  else if(limitReached){badge.className='badge badge-done';badge.textContent='LIMIT HIT';}
+  else if(rem<=20){badge.className='badge badge-purple';badge.textContent='LOW · '+rem+'M';}
+  else{badge.className='badge badge-active';badge.textContent='ACTIVE';}
+
+  document.getElementById('dopa-locked-banner').className='dopa-locked-banner'+(locked?' show':'');
+  document.getElementById('dopa-card').className='card'+(locked?' locked':'');
+  document.getElementById('dopa-use-btn').disabled=locked||noPoints||limitReached;
+}
+
+function useDopamine(){
+  const d=S.daily;
+  if(d.dopaLocked){showToast('DOPAMINE LOCKED FOR TODAY','red');return;}
+  if(S.points<10){showToast('NOT ENOUGH POINTS','red');return;}
+  const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
+  if(rem<=0){showToast('DAILY LIMIT REACHED','red');return;}
+
+  S.points=Math.max(0,S.points-10);
+  d.spentToday+=10;
+  d.dopaUsed+=10;
+  if(d.dopaUsed>=d.dopaLimit) S.nextDayPenalty=true;
+
+  const logId=Date.now();
+  S.logs.push({
+    id:logId, action:'Dopamine · 10 min', pts:-10,
+    ts:logId, note:'', flag:null,
+    reversible:true, logType:'dopa', dopaAmt:10
+  });
+
+  saveState();renderStats();renderDopamine();renderLogs();
+  spawnFloatingPts(-10, false);
+  flashPoints();
+  showToast('10 MIN USED · '+Math.max(0,d.dopaLimit-d.dopaUsed)+'M REMAINING','');
+}
+
+function dopamineImpulse(){
+  S.points=Math.max(0,S.points-10);
+  S.daily.spentToday+=10;
+  S.nextDayPenalty=true;
+
+  const logId=Date.now();
+  S.logs.push({
+    id:logId, action:'Impulse Violation', pts:-10,
+    ts:logId, note:'', flag:null,
+    reversible:true, logType:'impulse'
+  });
+
+  saveState();renderStats();renderDopamine();renderLogs();
+  spawnFloatingPts(-10, false);
+  flashPoints();
+  showToast('IMPULSE PENALTY: −10 PTS','red');
+}
+
+function dopamineNudity(){
+  document.getElementById('nudity-modal-wrap').classList.add('open');
+}
+
+function executeNudity(){
+  document.getElementById('nudity-modal-wrap').classList.remove('open');
+  const d=S.daily;
+  S.points=Math.max(0,S.points-20);
+  d.spentToday+=20;
+  d.dopaLocked=true;
+  S.nextDayPenalty=true;
+
+  const logId=Date.now();
+  S.logs.push({
+    id:logId, action:'Nudity Violation', pts:-20,
+    ts:logId, note:'', flag:null,
+    reversible:false,  // ← PERMANENT — cannot be undone
+    logType:'nudity'
+  });
+
+  saveState();renderStats();renderDopamine();renderLogs();
+  spawnFloatingPts(-20, false);
+  flashPoints();
+  showToast('LOCKED · −20 PTS · REDUCED LIMIT TOMORROW','red');
+}
+
+document.getElementById('nudity-confirm').addEventListener('click',executeNudity);
+document.getElementById('nudity-cancel').addEventListener('click',()=>{
+  document.getElementById('nudity-modal-wrap').classList.remove('open');
+});
+document.getElementById('nudity-modal-wrap').addEventListener('click',e=>{
+  if(e.target===document.getElementById('nudity-modal-wrap'))
+    document.getElementById('nudity-modal-wrap').classList.remove('open');
+});
+
+// ── Spending ──────────────────────────────────────────────────────────
+const SPEND_CAP=150;
+
+function renderSpending(){
+  const used=S.daily.spendUsed;
+  const rem=Math.max(0,SPEND_CAP-used);
+  const capped=rem<=0;
+  const pct=Math.min(100,Math.round((used/SPEND_CAP)*100));
+
+  const numEl=document.getElementById('spend-used-num');
+  numEl.textContent=used;
+  numEl.className='spend-amt-num'+(capped?' maxed':'');
+  document.getElementById('spend-rem-val').textContent='₹'+rem;
+
+  const bar=document.getElementById('bar-spending');
+  bar.style.width=pct+'%';
+  bar.className='bar '+(pct>=100?'bar-red':pct>=70?'bar-red':'bar-amber');
+
+  const badge=document.getElementById('spend-badge');
+  if(capped){badge.className='badge badge-done';badge.textContent='CAP REACHED';}
+  else if(rem<50){badge.className='badge badge-purple';badge.textContent='₹'+rem+' LEFT';}
+  else{badge.className='badge badge-active';badge.textContent='ACTIVE';}
+
+  document.getElementById('spend-capped-banner').className='spend-capped-banner'+(capped?' show':'');
+  document.getElementById('spend-card').className='card'+(capped?' capped':'');
+
+  [10,50,100,150].forEach(amt=>{
+    const btn=document.getElementById('spend-btn-'+amt);
+    if(!btn) return;
+    btn.disabled=(used+amt>SPEND_CAP)||(S.points<amt);
+  });
+}
+
+function spend(amt){
+  if(S.daily.spendUsed+amt>SPEND_CAP){showToast('DAILY CAP OF ₹150 EXCEEDED','red');return;}
+  if(S.points<amt){showToast('NOT ENOUGH POINTS','red');return;}
+
+  S.points=Math.max(0,S.points-amt);
+  S.daily.spendUsed+=amt;
+
+  const logId=Date.now();
+  S.logs.push({
+    id:logId, action:'Spend ₹'+amt, pts:-amt,
+    ts:logId, note:'', flag:null,
+    reversible:true, logType:'spend', spendAmt:amt
+  });
+
+  const rem=Math.max(0,SPEND_CAP-S.daily.spendUsed);
+  saveState();renderStats();renderSpending();renderLogs();
+  spawnFloatingPts(-amt, false);
+  flashPoints();
+  if(rem===0){showToast('₹'+amt+' SPENT · DAILY CAP REACHED','red');}
+  else{showToast('₹'+amt+' SPENT · ₹'+rem+' REMAINING','');}
+}
+
+// ── Plans ─────────────────────────────────────────────────────────────
+let pendingPlanAction=null;
+
+function planPenalty(amount){
+  return Math.max(10,Math.floor(amount*0.1));
+}
+
+function renderPlans(){
+  const list=document.getElementById('plans-list');
+  list.innerHTML='';
+
+  if(!S.plans.length){
+    list.innerHTML='<div class="log-empty">NO PLANS YET — ADD A LONG-TERM GOAL</div>';
+    const badge=document.getElementById('plans-badge');
+    badge.textContent='0 ACTIVE';badge.className='badge badge-done';
+    return;
+  }
+
+  S.plans.forEach(p=>{if(p.storedPoints>=p.targetPoints) p.completed=true;});
+  const activeCount=S.plans.filter(p=>!p.completed).length;
+  const badge=document.getElementById('plans-badge');
+  badge.textContent=activeCount+' ACTIVE';
+  badge.className='badge '+(activeCount===0?'badge-active':'badge-purple');
+
+  S.plans.forEach((p,i)=>{
+    const pct=Math.min(100,Math.round((p.storedPoints/p.targetPoints)*100));
+    const complete=p.completed;
+    const barCls=complete?'bar-neon':pct>=80?'bar-neon':pct>=40?'bar-cyan':'bar-cyan';
+
+    let dateLine='';
+    if(p.targetDate){
+      const d=new Date(p.targetDate+'T00:00:00');
+      const today=new Date();today.setHours(0,0,0,0);
+      const diff=Math.round((d-today)/86400000);
+      const label=diff<0?'OVERDUE BY '+Math.abs(diff)+'D':diff===0?'DUE TODAY':diff===1?'DUE TOMORROW':'DUE IN '+diff+'D';
+      const col=diff<0?'var(--red)':diff<=3?'var(--amber)':'var(--text3)';
+      dateLine=` · <span style="color:${col}">${label}</span>`;
+    }
+
+    const item=document.createElement('div');
+    item.className='plan-item'+(complete?' complete':'');
+    item.innerHTML=`
+      <div class="plan-header">
+        <span class="plan-name">${escHtml(p.name)}</span>
+        <span class="badge ${complete?'badge-active':'badge-purple'}">${complete?'✓ COMPLETE':pct+'%'}</span>
+      </div>
+      <div class="plan-meta">${p.storedPoints} / ${p.targetPoints} PTS STORED${dateLine}</div>
+      <div class="plan-bar-row">
+        <div class="bar-wrap"><div class="bar ${barCls}" style="width:${pct}%;transition:width 0.5s ease"></div></div>
+      </div>
+      <div class="plan-btns">
+        <button class="plan-action-btn dep" ${complete?'disabled':''}>DEPOSIT</button>
+        <button class="plan-action-btn wdr" ${p.storedPoints===0?'disabled':''}>WITHDRAW</button>
+        <button class="plan-action-btn del">DELETE</button>
+      </div>`;
+
+    const [depBtn,wdrBtn,delBtn]=item.querySelectorAll('.plan-action-btn');
+    if(!complete) depBtn.addEventListener('click',()=>openPlanModal('deposit',i));
+    if(p.storedPoints>0) wdrBtn.addEventListener('click',()=>openPlanModal('withdraw',i));
+    delBtn.addEventListener('click',()=>deletePlan(i));
+    list.appendChild(item);
+  });
+}
+
+function openPlanModal(type,i){
+  const p=S.plans[i];
+  if(!p) return;
+  pendingPlanAction={type,idx:i};
+  const isDeposit=type==='deposit';
+  document.getElementById('plan-modal-title').textContent=isDeposit?'DEPOSIT INTO "'+p.name.toUpperCase()+'"':'WITHDRAW FROM "'+p.name.toUpperCase()+'"';
+  document.getElementById('plan-modal-sub').innerHTML=isDeposit
+    ?'Your balance: <strong>'+S.points+' pts</strong><br>Stored: '+p.storedPoints+' / '+p.targetPoints+' pts'
+    :'Stored: <strong>'+p.storedPoints+' pts</strong><br>Penalty: 10% of amount, min 10 pts';
+  document.getElementById('plan-modal-amount').value='';
+  document.getElementById('plan-modal-penalty').textContent='';
+  const confirmBtn=document.getElementById('plan-modal-confirm');
+  confirmBtn.textContent=isDeposit?'DEPOSIT':'WITHDRAW';
+  confirmBtn.className='modal-btn-confirm'+(isDeposit?'':' amber');
+  document.getElementById('plan-modal-wrap').classList.add('open');
+  setTimeout(()=>document.getElementById('plan-modal-amount').focus(),40);
+}
+
+function closePlanModal(){
+  document.getElementById('plan-modal-wrap').classList.remove('open');
+  pendingPlanAction=null;
+}
+
+document.getElementById('plan-modal-amount').addEventListener('input',()=>{
+  const penaltyEl=document.getElementById('plan-modal-penalty');
+  if(!pendingPlanAction||pendingPlanAction.type!=='withdraw'){penaltyEl.textContent='';return;}
+  const amt=Math.floor(Number(document.getElementById('plan-modal-amount').value));
+  if(!amt||amt<1){penaltyEl.textContent='';return;}
+  const penalty=planPenalty(amt);
+  const returned=Math.max(0,amt-penalty);
+  penaltyEl.textContent='−'+penalty+' PTS PENALTY · YOU RECEIVE BACK '+returned+' PTS';
+});
+
+document.getElementById('plan-modal-confirm').addEventListener('click',()=>{
+  if(!pendingPlanAction) return;
+  const {type,idx}=pendingPlanAction;
+  const p=S.plans[idx];
+  if(!p){closePlanModal();return;}
+
+  const raw=document.getElementById('plan-modal-amount').value.trim();
+  const amt=Math.floor(Number(raw));
+  if(!raw||isNaN(amt)||amt<1){showToast('ENTER A VALID WHOLE NUMBER ≥ 1','red');return;}
+
+  if(type==='deposit'){
+    if(amt>S.points){showToast('NOT ENOUGH POINTS — YOU HAVE '+S.points,'red');return;}
+    S.points-=amt;
+    p.storedPoints+=amt;
+    if(p.storedPoints>=p.targetPoints) p.completed=true;
+    saveState();renderStats();renderPlans();flashPoints();
+    showToast('+'+amt+' PTS DEPOSITED INTO "'+p.name.toUpperCase()+'"','green');
+    closePlanModal();
+  } else if(type==='withdraw'){
+    if(amt>p.storedPoints){showToast('PLAN ONLY HOLDS '+p.storedPoints+' PTS','red');return;}
+    const penalty=planPenalty(amt);
+    const returned=Math.max(0,amt-penalty);
+    p.storedPoints-=amt;
+    if(p.storedPoints<p.targetPoints) p.completed=false;
+    S.points+=returned;
+    saveState();renderStats();renderPlans();
+    spawnFloatingPts(returned > 0 ? returned : -penalty, returned > 0);
+    flashPoints();
+    showToast('−'+penalty+' PENALTY · +'+returned+' PTS RETURNED','red');
+    closePlanModal();
+  }
+});
+
+document.getElementById('plan-modal-cancel').addEventListener('click',closePlanModal);
+document.getElementById('plan-modal-wrap').addEventListener('click',e=>{
+  if(e.target===document.getElementById('plan-modal-wrap')) closePlanModal();
+});
+
+function deletePlan(i){
+  const p=S.plans[i];
+  if(!p) return;
+  if(p.storedPoints>0){
+    const penalty=planPenalty(p.storedPoints);
+    const returned=Math.max(0,p.storedPoints-penalty);
+    S.points+=returned;
+    S.plans.splice(i,1);
+    saveState();renderStats();renderPlans();flashPoints();
+    showToast('PLAN DELETED · −'+penalty+' PENALTY · +'+returned+' PTS RETURNED','red');
+  } else {
+    S.plans.splice(i,1);saveState();renderPlans();
+    showToast('"'+p.name+'" DELETED','');
+  }
+}
+
+function addPlan(){
+  const nameEl=document.getElementById('plan-name');
+  const targetEl=document.getElementById('plan-target');
+  const dateEl=document.getElementById('plan-date');
+  const name=nameEl.value.trim();
+  const rawTgt=targetEl.value.trim();
+  const target=Math.floor(Number(rawTgt));
+
+  if(!name){showToast('PLAN NAME IS REQUIRED','red');nameEl.focus();return;}
+  if(!rawTgt||isNaN(target)||target<1){showToast('TARGET MUST BE ≥ 1','red');targetEl.focus();return;}
+  if(target>999999){showToast('MAX TARGET IS 999,999 PTS','red');targetEl.focus();return;}
+  if(S.plans.some(p=>p.name.toLowerCase()===name.toLowerCase())){
+    showToast('PLAN ALREADY EXISTS','red');nameEl.focus();return;
+  }
+
+  S.plans.push({
+    name,targetPoints:target,storedPoints:0,completed:false,
+    created:Date.now(),targetDate:dateEl.value||null
+  });
+  nameEl.value='';targetEl.value='';dateEl.value='';nameEl.focus();
+  saveState();renderPlans();
+  showToast('"'+name.toUpperCase()+'" CREATED · GOAL: '+target+' PTS','green');
+}
+
+document.getElementById('add-plan-btn').addEventListener('click',addPlan);
+document.getElementById('plan-name').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();document.getElementById('plan-target').focus();}
+});
+document.getElementById('plan-target').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();addPlan();}
+});
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closePlanModal();
+    closeUndoModal();
+    document.getElementById('note-modal-wrap').classList.remove('open');
+    document.getElementById('nudity-modal-wrap').classList.remove('open');
+  }
+  if(e.key==='Enter'&&pendingPlanAction&&document.activeElement===document.getElementById('plan-modal-amount')){
+    e.preventDefault();document.getElementById('plan-modal-confirm').click();
+  }
+});
+
+// ── Init ──────────────────────────────────────────────────────────────
+window.__adhdState=S;
+window.__adhdSave=()=>{saveState();render();};
+loadStateAsync().then(loaded => {
+  S = loaded;
+  render();
+});
+</script>
+</html>
