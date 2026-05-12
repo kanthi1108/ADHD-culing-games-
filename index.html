@@ -494,7 +494,7 @@ body{
   <div class="point-section" id="pts-section">
     <div class="toast-container" id="toast-wrap"></div>
     <div class="point-label">// CURRENT POINTS</div>
-    <div class="point-big" id="pts">0</div>
+    <div class="point-big" id="pts" onclick="manualOverride()" style="cursor:pointer" title="Click to override">0</div>
     <div class="point-sub">LIFETIME &nbsp;<span id="lifetime">0</span> PTS EARNED</div>
   </div>
 
@@ -1015,7 +1015,7 @@ function executeDeleteLog(logId){
   // Reverse points earned/spent
   if(l.pts > 0){
     // Was a gain — deduct back
-    S.points = Math.max(0, S.points - l.pts);
+    S.points = S.points - l.pts; // FIX: Allow negative debt if they over-refund!
     S.lifetimePoints = Math.max(0, S.lifetimePoints - l.pts);
     S.daily.earnedToday = Math.max(0, (S.daily.earnedToday||0) - l.pts);
     S.daily.actionCount = Math.max(0, (S.daily.actionCount||0) - 1);
@@ -1567,6 +1567,29 @@ document.getElementById('plan-target').addEventListener('keydown',e=>{
 });
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────
+// ── Manual Override ───────────────────────────────────────────────────
+function manualOverride(){
+  const raw = prompt("ADMIN OVERRIDE\nEnter exact points balance to set:", S.points);
+  if(raw === null || raw.trim() === '') return;
+  const val = parseInt(raw);
+  if(!isNaN(val)){
+    const diff = val - S.points;
+    S.points = val;
+    
+    // Log the manual change
+    S.logs.push({
+      id:Date.now(), action:'Manual Purse Override', pts:diff,
+      ts:Date.now(), note:'Admin adjustment', flag:null,
+      reversible:false, logType:'admin'
+    });
+    
+    saveState(); render(); flashPoints();
+    showToast('PURSE OVERRIDDEN TO ' + val, 'amber');
+  } else {
+    showToast('INVALID NUMBER', 'red');
+  }
+}
+
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closePlanModal();
