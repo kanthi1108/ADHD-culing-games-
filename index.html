@@ -615,22 +615,26 @@ body{
       <div class="bar-wrap"><div class="bar bar-amber" id="bar-spending" style="width:0%"></div></div>
     </div>
     <div class="spend-btns">
-      <button class="spend-btn" id="spend-btn-10" onclick="spend(10)">
+      <button class="spend-btn" id="spend-btn-10" onclick="triggerSpend(10)">
         <span class="spend-btn-label">₹10</span>
         <span class="spend-btn-cost">−10 PTS</span>
       </button>
-      <button class="spend-btn" id="spend-btn-50" onclick="spend(50)">
+      <button class="spend-btn" id="spend-btn-50" onclick="triggerSpend(50)">
         <span class="spend-btn-label">₹50</span>
         <span class="spend-btn-cost">−50 PTS</span>
       </button>
-      <button class="spend-btn" id="spend-btn-100" onclick="spend(100)">
+      <button class="spend-btn" id="spend-btn-100" onclick="triggerSpend(100)">
         <span class="spend-btn-label">₹100</span>
         <span class="spend-btn-cost">−100 PTS</span>
       </button>
-      <button class="spend-btn" id="spend-btn-150" onclick="spend(150)">
+      <button class="spend-btn" id="spend-btn-150" onclick="triggerSpend(150)">
         <span class="spend-btn-label">₹150</span>
         <span class="spend-btn-cost">−150 PTS</span>
       </button>
+    </div>
+    <div class="form-row" style="margin-top:8px">
+      <input class="form-input" id="custom-spend-amt" type="number" placeholder="custom amt (₹)" min="1" />
+      <button class="form-btn" id="custom-spend-btn" onclick="triggerCustomSpend()">SPEND</button>
     </div>
   </div>
 
@@ -1137,6 +1141,28 @@ function commitAction(note){
     showToast('IMPULSE PENALTY: −10 PTS','red');
     return;
   }
+    if(a.isSpend){
+    const cap = S.daily.dailyCap;
+    S.points -= a.amt;
+    S.daily.spendUsed += a.amt;
+    S.daily.spentToday += a.amt;
+
+    const logId = Date.now();
+    S.logs.push({
+      id:logId, action:'Spend ₹'+a.amt, pts:-a.amt,
+      ts:logId, note:note||'', flag:null,
+      reversible:true, logType:'spend', spendAmt:a.amt
+    });
+
+    const rem = Math.max(0, cap-S.daily.spendUsed);
+    saveState();renderStats();renderSpending();renderLogs();
+    spawnFloatingPts(-a.amt, false);
+    flashPoints();
+    if(rem===0){showToast('₹'+a.amt+' SPENT · DAILY CAP REACHED','red');}
+    else{showToast('₹'+a.amt+' SPENT · ₹'+rem+' REMAINING','');}
+    return;
+  
+  }
 
   S.points+=a.pts;
   S.lifetimePoints+=a.pts;
@@ -1345,30 +1371,34 @@ function renderSpending(){
     if(!btn) return;
     btn.disabled=(used+amt>cap)||(S.points<amt);
   });
+  const customBtn=document.getElementById('custom-spend-btn');
+  const customInp=document.getElementById('custom-spend-amt');
+  if(customBtn && customInp){
+    customBtn.disabled=capped;
+    customInp.disabled=capped;
+}
 }
 
-function spend(amt){
+function triggerCustomSpend(){
+  const raw = document.getElementById('custom-spend-amt').value;
+  const amt = Math.floor(Number(raw));
+  if(!raw || isNaN(amt) || amt < 1){ showToast('ENTER VALID AMOUNT', 'red'); return; }
+  triggerSpend(amt);
+  document.getElementById('custom-spend-amt').value = '';
+}
+
+function triggerSpend(amt){
   const cap=S.daily.dailyCap;
   if(S.daily.spendUsed+amt>cap){showToast('DAILY CAP OF ₹'+cap+' EXCEEDED','red');return;}
   if(S.points<amt){showToast('NOT ENOUGH POINTS','red');return;}
 
-  S.points=Math.max(0,S.points-amt);
-  S.daily.spendUsed+=amt;
-  S.daily.spentToday+=amt;
-
-  const logId=Date.now();
-  S.logs.push({
-    id:logId, action:'Spend ₹'+amt, pts:-amt,
-    ts:logId, note:'', flag:null,
-    reversible:true, logType:'spend', spendAmt:amt
-  });
-
-  const rem=Math.max(0,cap-S.daily.spendUsed);
-  saveState();renderStats();renderSpending();renderLogs();
-  spawnFloatingPts(-amt, false);
-  flashPoints();
-  if(rem===0){showToast('₹'+amt+' SPENT · DAILY CAP REACHED','red');}
-  else{showToast('₹'+amt+' SPENT · ₹'+rem+' REMAINING','');}
+  pendingAction = { id: 'spend_log', name: 'Spend', pts: -amt, isSpend: true, amt: amt };
+  const titleEl = document.getElementById('note-modal-title');
+  titleEl.textContent = 'LOG SPEND: ₹' + amt;
+  titleEl.className = 'modal-title amber'; 
+  document.getElementById('note-input').value = '';
+  document.getElementById('note-input').placeholder = 'what did you buy? (optional)';
+  document.getElementById('note-modal-wrap').classList.add('open');
 }
 
 // ── Plans ─────────────────────────────────────────────────────────────
