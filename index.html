@@ -769,11 +769,12 @@ function loadState(){
   }
 }
 
+// FIX: Perfectly formatted Supabase setup
 const SUPABASE_URL = 'https://diislxmomzytmgxkmeuw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpaXNseG1vbXp5dG1neGttZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQ1MTUsImV4cCI6MjA5MTc2MDUxNX0.LjX4uzAvLCP7eve11BBsez4WAgJ-oWRIMHhnLCvnP68';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Hardcoded Elite ID: All devices will now sync to this exact row
+// FIX: Hardcoded Elite ID exactly where it needs to be
 const USER_ID = 'admin-kanthi-adhd-system-001';
 
 // Save: Update timestamp on every save
@@ -941,7 +942,6 @@ function renderLogs(){
     const ptsColor=l.pts>=0?'var(--neon)':'var(--red)';
     const ptsText=(l.pts>=0?'+':'')+l.pts;
 
-    // Determine if reversible (default true for old logs without the field)
     const reversible = (l.reversible !== false);
 
     const ptsEl=`<span class="log-pts" style="color:${ptsColor};text-shadow:${l.pts>=0?'0 0 8px rgba(0,255,136,0.4)':'0 0 8px rgba(255,59,59,0.4)'}">${ptsText}</span>`;
@@ -999,44 +999,35 @@ function executeDeleteLog(logId){
   if(idx===-1){showToast('LOG NOT FOUND','red');return;}
   const l=S.logs[idx];
 
-  // Safety: only allow reversal for today's logs
   if(new Date(l.ts).toDateString()!==new Date().toDateString()){
     showToast('CAN ONLY REVERSE TODAY\'S LOGS','red');return;
   }
-  // Safety: non-reversible logs cannot be deleted
   if(l.reversible === false){
     showToast('THIS ACTION CANNOT BE REVERSED','red');return;
   }
 
-  // Reverse points earned/spent
+  // FIX: Allowing Negative Debt during Undo calculations
   if(l.pts > 0){
-    // Was a gain — deduct back
-    S.points = S.points - l.pts; // FIX: Allow negative debt if they over-refund!
+    S.points = S.points - l.pts;
     S.lifetimePoints = Math.max(0, S.lifetimePoints - l.pts);
     S.daily.earnedToday = Math.max(0, (S.daily.earnedToday||0) - l.pts);
     S.daily.actionCount = Math.max(0, (S.daily.actionCount||0) - 1);
   } else if(l.pts < 0){
-    // Was a cost — restore back
     S.points -= l.pts; // pts is negative, so this adds
-    // spentToday reversal handled below per logType
   }
 
-  // Reverse daily flag
   if(l.flag) S.daily.flags[l.flag]=false;
 
-  // Reverse spending (spend log)
   if(l.logType === 'spend' && l.spendAmt){
     S.daily.spendUsed = Math.max(0, S.daily.spendUsed - l.spendAmt);
     S.daily.spentToday = Math.max(0, S.daily.spentToday - l.spendAmt);
   }
 
-  // Reverse dopamine usage
   if(l.logType === 'dopa' && l.dopaAmt){
     S.daily.dopaUsed = Math.max(0, S.daily.dopaUsed - l.dopaAmt);
     S.daily.spentToday = Math.max(0, S.daily.spentToday - Math.abs(l.pts));
   }
 
-  // Reverse impulse (cost only, no dopa usage)
   if(l.logType === 'impulse'){
     S.daily.spentToday = Math.max(0, S.daily.spentToday - Math.abs(l.pts));
   }
@@ -1054,13 +1045,11 @@ function renderStats(){
   document.getElementById('pts').textContent=S.points;
   document.getElementById('lifetime').textContent=S.lifetimePoints;
 
-  // FIX: Wire the top UI strictly to food spending (spendUsed) 
   document.getElementById('spent-today').textContent=S.daily.spendUsed; 
   document.getElementById('daily-cap').textContent=S.daily.dailyCap;
   document.getElementById('earned-today').textContent=S.daily.earnedToday;
   document.getElementById('action-count').textContent=S.daily.actionCount;
 
-  // FIX: Calculate percentages using independent metrics
   const spendPct=Math.min(100,Math.round((S.daily.spendUsed/S.daily.dailyCap)*100));
   const dopaPct=Math.min(100,Math.round((S.daily.dopaUsed/S.daily.dopaLimit)*100));
 
@@ -1130,9 +1119,34 @@ function triggerAction(action){
 
 function commitAction(note){
   document.getElementById('note-modal-wrap').classList.remove('open');
+  
+  // Reset modal style
+  document.getElementById('note-modal-title').className = 'modal-title';
+  document.getElementById('note-input').placeholder = 'what happened? (optional)';
+
   if(!pendingAction) return;
   const a=pendingAction;
   pendingAction=null;
+
+  // FIX: Handle Native Impulse Modal Routing
+  if(a.isImpulse){
+    S.points = S.points - 10;
+    S.daily.spentToday+=10;
+    S.nextDayPenalty=true;
+
+    const logId=Date.now();
+    S.logs.push({
+      id:logId, action:'Impulse Violation', pts:-10,
+      ts:logId, note:note||'', flag:null,
+      reversible:true, logType:'impulse'
+    });
+
+    saveState();renderStats();renderDopamine();renderLogs();
+    spawnFloatingPts(-10, false);
+    flashPoints();
+    showToast('IMPULSE PENALTY: −10 PTS','red');
+    return;
+  }
 
   S.points+=a.pts;
   S.lifetimePoints+=a.pts;
@@ -1220,7 +1234,6 @@ function renderDopamine(){
   const limitReached=rem<=0;
   const noPoints=S.points<10;
 
-  // Inner dopa progress bar
   const dopaPct=Math.min(100,Math.round((d.dopaUsed/d.dopaLimit)*100));
   const bar2=document.getElementById('bar-dopa2');
   bar2.style.width=dopaPct+'%';
@@ -1248,7 +1261,7 @@ function renderDopamine(){
 function useDopamine(){
   const d=S.daily;
   if(d.dopaLocked){showToast('DOPAMINE LOCKED FOR TODAY','red');return;}
-  if(S.points<10){showToast('NOT ENOUGH POINTS','red');return;} // Legitimate purchases are blocked if broke
+  if(S.points<10){showToast('NOT ENOUGH POINTS','red');return;}
   const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
   if(rem<=0){showToast('DAILY LIMIT REACHED','red');return;}
 
@@ -1270,13 +1283,13 @@ function useDopamine(){
   showToast('10 MIN USED · '+Math.max(0,d.dopaLimit-d.dopaUsed)+'M REMAINING','');
 }
 
+// FIX: Native Terminal Modal routing for Impulse
 function dopamineImpulse(){
-  // Hijack the native cyber-themed action modal for the impulse
   pendingAction = { id: 'impulse_log', name: 'Impulse Violation', pts: -10, isImpulse: true };
   
   const titleEl = document.getElementById('note-modal-title');
   titleEl.textContent = '⚠ LOG IMPULSE VIOLATION';
-  titleEl.className = 'modal-title red'; // Turn the text red for warnings
+  titleEl.className = 'modal-title red'; 
   
   document.getElementById('note-input').value = '';
   document.getElementById('note-input').placeholder = 'what was the impulse? (optional)';
@@ -1291,7 +1304,7 @@ function executeNudity(){
   document.getElementById('nudity-modal-wrap').classList.remove('open');
   const d=S.daily;
   
-  S.points = S.points - 20; // FIX: Allow Point Debt (Negative Points)
+  S.points = S.points - 20; // FIX: Strict subtraction
   d.spentToday+=20;
   d.dopaLocked=true;
   S.nextDayPenalty=true;
@@ -1300,7 +1313,7 @@ function executeNudity(){
   S.logs.push({
     id:logId, action:'Nudity Violation', pts:-20,
     ts:logId, note:'', flag:null,
-    reversible:false,  // ← PERMANENT — cannot be undone
+    reversible:false,  // PERMANENT
     logType:'nudity'
   });
 
@@ -1358,7 +1371,7 @@ function spend(amt){
 
   S.points=Math.max(0,S.points-amt);
   S.daily.spendUsed+=amt;
-  S.daily.spentToday+=amt; // Fix: Keep background metric accurate for un-doing
+  S.daily.spentToday+=amt;
 
   const logId=Date.now();
   S.logs.push({
@@ -1558,7 +1571,6 @@ document.getElementById('plan-target').addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();addPlan();}
 });
 
-// ── Keyboard shortcuts ────────────────────────────────────────────────
 // ── Manual Override ───────────────────────────────────────────────────
 function manualOverride(){
   const raw = prompt("ADMIN OVERRIDE\nEnter exact points balance to set:", S.points);
@@ -1568,7 +1580,6 @@ function manualOverride(){
     const diff = val - S.points;
     S.points = val;
     
-    // Log the manual change
     S.logs.push({
       id:Date.now(), action:'Manual Purse Override', pts:diff,
       ts:Date.now(), note:'Admin adjustment', flag:null,
@@ -1582,6 +1593,7 @@ function manualOverride(){
   }
 }
 
+// ── Keyboard shortcuts ────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closePlanModal();
