@@ -1275,25 +1275,16 @@ function useDopamine(){
 }
 
 function dopamineImpulse(){
-  // Ask for the trigger/reason before applying the penalty
-  const reason = prompt("IMPULSE LOG\nWhat was the impulse? (Optional)");
-  if(reason === null) return; // If you hit Cancel, it aborts the penalty
-
-  S.points = S.points - 10; // Point Debt allowed
-  S.daily.spentToday+=10;
-  S.nextDayPenalty=true;
-
-  const logId=Date.now();
-  S.logs.push({
-    id:logId, action:'Impulse Violation', pts:-10,
-    ts:logId, note: reason.trim(), flag:null,
-    reversible:true, logType:'impulse'
-  });
-
-  saveState();renderStats();renderDopamine();renderLogs();
-  spawnFloatingPts(-10, false);
-  flashPoints();
-  showToast('IMPULSE PENALTY: −10 PTS','red');
+  // Hijack the native cyber-themed action modal for the impulse
+  pendingAction = { id: 'impulse_log', name: 'Impulse Violation', pts: -10, isImpulse: true };
+  
+  const titleEl = document.getElementById('note-modal-title');
+  titleEl.textContent = '⚠ LOG IMPULSE VIOLATION';
+  titleEl.className = 'modal-title red'; // Turn the text red for warnings
+  
+  document.getElementById('note-input').value = '';
+  document.getElementById('note-input').placeholder = 'what was the impulse? (optional)';
+  document.getElementById('note-modal-wrap').classList.add('open');
 }
 
 function dopamineNudity(){
