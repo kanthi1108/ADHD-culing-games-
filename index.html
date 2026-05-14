@@ -769,15 +769,12 @@ function loadState(){
   }
 }
 
-// FIX: Perfectly formatted Supabase setup
 const SUPABASE_URL = 'https://diislxmomzytmgxkmeuw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpaXNseG1vbXp5dG1neGttZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQ1MTUsImV4cCI6MjA5MTc2MDUxNX0.LjX4uzAvLCP7eve11BBsez4WAgJ-oWRIMHhnLCvnP68';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// FIX: Hardcoded Elite ID exactly where it needs to be
 const USER_ID = 'admin-kanthi-adhd-system-001';
 
-// Save: Update timestamp on every save
 function saveState(){
   S.lastUpdated = Date.now();
   localStorage.setItem('adhd_system_v1', JSON.stringify(S));
@@ -788,7 +785,7 @@ function saveState(){
 let _syncTimer = null;
 function debouncedSync(){
   clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(syncToCloud, 1500); // 1.5s debounce
+  _syncTimer = setTimeout(syncToCloud, 1500); 
 }
 
 async function syncToCloud(){
@@ -804,7 +801,6 @@ async function syncToCloud(){
   }
 }
 
-// Load: Only pull from cloud if the timestamp is strictly newer
 async function loadStateAsync(){
   const local = loadState(); 
   try {
@@ -821,7 +817,7 @@ async function loadStateAsync(){
         return loadState(); 
       }
     }
-  } catch(e) { /* offline - use local */ }
+  } catch(e) { }
   return local;
 }
 
@@ -1013,7 +1009,7 @@ function executeDeleteLog(logId){
     S.daily.earnedToday = Math.max(0, (S.daily.earnedToday||0) - l.pts);
     S.daily.actionCount = Math.max(0, (S.daily.actionCount||0) - 1);
   } else if(l.pts < 0){
-    S.points -= l.pts; // pts is negative, so this adds
+    S.points -= l.pts; 
   }
 
   if(l.flag) S.daily.flags[l.flag]=false;
@@ -1119,8 +1115,6 @@ function triggerAction(action){
 
 function commitAction(note){
   document.getElementById('note-modal-wrap').classList.remove('open');
-  
-  // Reset modal style
   document.getElementById('note-modal-title').className = 'modal-title';
   document.getElementById('note-input').placeholder = 'what happened? (optional)';
 
@@ -1128,19 +1122,15 @@ function commitAction(note){
   const a=pendingAction;
   pendingAction=null;
 
-  // FIX: Handle Native Impulse Modal Routing
   if(a.isImpulse){
     S.points = S.points - 10;
     S.daily.spentToday+=10;
     S.nextDayPenalty=true;
-
-    const logId=Date.now();
     S.logs.push({
-      id:logId, action:'Impulse Violation', pts:-10,
-      ts:logId, note:note||'', flag:null,
+      id:Date.now(), action:'Impulse Violation', pts:-10,
+      ts:Date.now(), note:note||'', flag:null,
       reversible:true, logType:'impulse'
     });
-
     saveState();renderStats();renderDopamine();renderLogs();
     spawnFloatingPts(-10, false);
     flashPoints();
@@ -1152,20 +1142,16 @@ function commitAction(note){
   S.lifetimePoints+=a.pts;
   S.daily.earnedToday+=a.pts;
   S.daily.actionCount+=1;
-
   if(a.flag) S.daily.flags[a.flag]=true;
 
   S.logs.push({
     id:Date.now(), action:a.name, actionId:a.id||'',
     pts:a.pts, flag:a.flag||null,
     ts:Date.now(), note:note||'',
-    reversible:true,
-    logType: a.isChore ? 'chore' : 'action'
+    reversible:true, logType: a.isChore ? 'chore' : 'action'
   });
 
-  saveState(); render();
-  spawnFloatingPts(a.pts, true);
-  flashPoints();
+  saveState(); render(); spawnFloatingPts(a.pts, true); flashPoints();
   showToast('+'+a.pts+' PTS · '+a.name.toUpperCase(),'green');
 }
 
@@ -1265,7 +1251,7 @@ function useDopamine(){
   const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
   if(rem<=0){showToast('DAILY LIMIT REACHED','red');return;}
 
-  S.points = S.points - 10; // FIX: Strict subtraction
+  S.points = S.points - 10; 
   d.spentToday+=10;
   d.dopaUsed+=10;
   if(d.dopaUsed>=d.dopaLimit) S.nextDayPenalty=true;
@@ -1283,14 +1269,11 @@ function useDopamine(){
   showToast('10 MIN USED · '+Math.max(0,d.dopaLimit-d.dopaUsed)+'M REMAINING','');
 }
 
-// FIX: Native Terminal Modal routing for Impulse
 function dopamineImpulse(){
   pendingAction = { id: 'impulse_log', name: 'Impulse Violation', pts: -10, isImpulse: true };
-  
   const titleEl = document.getElementById('note-modal-title');
   titleEl.textContent = '⚠ LOG IMPULSE VIOLATION';
   titleEl.className = 'modal-title red'; 
-  
   document.getElementById('note-input').value = '';
   document.getElementById('note-input').placeholder = 'what was the impulse? (optional)';
   document.getElementById('note-modal-wrap').classList.add('open');
@@ -1304,7 +1287,7 @@ function executeNudity(){
   document.getElementById('nudity-modal-wrap').classList.remove('open');
   const d=S.daily;
   
-  S.points = S.points - 20; // FIX: Strict subtraction
+  S.points = S.points - 20; 
   d.spentToday+=20;
   d.dopaLocked=true;
   S.nextDayPenalty=true;
@@ -1313,7 +1296,7 @@ function executeNudity(){
   S.logs.push({
     id:logId, action:'Nudity Violation', pts:-20,
     ts:logId, note:'', flag:null,
-    reversible:false,  // PERMANENT
+    reversible:false,  
     logType:'nudity'
   });
 
