@@ -807,7 +807,8 @@ async function loadStateAsync(){
     const { data } = await sb.from('user_state')
       .select('state, updated_at')
       .eq('user_id', USER_ID)
-      .single();
+      .maybeSingle(); // FIX: Swapped .single() to .maybeSingle() here
+    
     if(data && data.state){
       const cloud = data.state;
       const cloudTime = cloud.lastUpdated || 0;
@@ -1002,7 +1003,6 @@ function executeDeleteLog(logId){
     showToast('THIS ACTION CANNOT BE REVERSED','red');return;
   }
 
-  // FIX: Allowing Negative Debt during Undo calculations
   if(l.pts > 0){
     S.points = S.points - l.pts;
     S.lifetimePoints = Math.max(0, S.lifetimePoints - l.pts);
