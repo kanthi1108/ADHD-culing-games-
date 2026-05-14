@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="icon" href="data:,">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>DISCIPLINE SYSTEM v0.8</title>
@@ -811,7 +812,7 @@ async function loadStateAsync(){
     const { data } = await sb.from('user_state')
       .select('state, updated_at')
       .eq('user_id', USER_ID)
-      .maybeSingle(); // FIX: Swapped .single() to .maybeSingle() here
+      .maybeSingle(); 
     
     if(data && data.state){
       const cloud = data.state;
@@ -1141,7 +1142,8 @@ function commitAction(note){
     showToast('IMPULSE PENALTY: −10 PTS','red');
     return;
   }
-    if(a.isSpend){
+
+  if(a.isSpend){
     const cap = S.daily.dailyCap;
     S.points -= a.amt;
     S.daily.spendUsed += a.amt;
@@ -1161,7 +1163,6 @@ function commitAction(note){
     if(rem===0){showToast('₹'+a.amt+' SPENT · DAILY CAP REACHED','red');}
     else{showToast('₹'+a.amt+' SPENT · ₹'+rem+' REMAINING','');}
     return;
-  
   }
 
   S.points+=a.pts;
@@ -1371,12 +1372,13 @@ function renderSpending(){
     if(!btn) return;
     btn.disabled=(used+amt>cap)||(S.points<amt);
   });
+  
   const customBtn=document.getElementById('custom-spend-btn');
   const customInp=document.getElementById('custom-spend-amt');
   if(customBtn && customInp){
     customBtn.disabled=capped;
     customInp.disabled=capped;
-}
+  }
 }
 
 function triggerCustomSpend(){
