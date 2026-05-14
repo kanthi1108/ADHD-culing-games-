@@ -773,12 +773,8 @@ const SUPABASE_URL = 'https://diislxmomzytmgxkmeuw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpaXNseG1vbXp5dG1neGttZXV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQ1MTUsImV4cCI6MjA5MTc2MDUxNX0.LjX4uzAvLCP7eve11BBsez4WAgJ-oWRIMHhnLCvnP68';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function getUserId(){
-  let id = localStorage.getItem('adhd_user_id');
-  if(!id){ id = crypto.randomUUID(); localStorage.setItem('adhd_user_id', id); }
-  return id;
-}
-const USER_ID = getUserId();
+// Hardcoded Elite ID: All devices will now sync to this exact row
+const USER_ID = 'admin-kanthi-adhd-system-001';
 
 // Save: Update timestamp on every save
 function saveState(){
