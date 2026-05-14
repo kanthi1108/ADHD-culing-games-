@@ -1252,11 +1252,11 @@ function renderDopamine(){
 function useDopamine(){
   const d=S.daily;
   if(d.dopaLocked){showToast('DOPAMINE LOCKED FOR TODAY','red');return;}
-  if(S.points<10){showToast('NOT ENOUGH POINTS','red');return;}
+  if(S.points<10){showToast('NOT ENOUGH POINTS','red');return;} // Legitimate purchases are blocked if broke
   const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
   if(rem<=0){showToast('DAILY LIMIT REACHED','red');return;}
 
-  S.points=Math.max(0,S.points-10);
+  S.points = S.points - 10; // FIX: Strict subtraction
   d.spentToday+=10;
   d.dopaUsed+=10;
   if(d.dopaUsed>=d.dopaLimit) S.nextDayPenalty=true;
@@ -1275,7 +1275,7 @@ function useDopamine(){
 }
 
 function dopamineImpulse(){
-  S.points=Math.max(0,S.points-10);
+  S.points = S.points - 10; // FIX: Allow Point Debt (Negative Points)
   S.daily.spentToday+=10;
   S.nextDayPenalty=true;
 
@@ -1299,7 +1299,8 @@ function dopamineNudity(){
 function executeNudity(){
   document.getElementById('nudity-modal-wrap').classList.remove('open');
   const d=S.daily;
-  S.points=Math.max(0,S.points-20);
+  
+  S.points = S.points - 20; // FIX: Allow Point Debt (Negative Points)
   d.spentToday+=20;
   d.dopaLocked=true;
   S.nextDayPenalty=true;
