@@ -1275,14 +1275,18 @@ function useDopamine(){
 }
 
 function dopamineImpulse(){
-  S.points = S.points - 10; // FIX: Allow Point Debt (Negative Points)
+  // Ask for the trigger/reason before applying the penalty
+  const reason = prompt("IMPULSE LOG\nWhat was the impulse? (Optional)");
+  if(reason === null) return; // If you hit Cancel, it aborts the penalty
+
+  S.points = S.points - 10; // Point Debt allowed
   S.daily.spentToday+=10;
   S.nextDayPenalty=true;
 
   const logId=Date.now();
   S.logs.push({
     id:logId, action:'Impulse Violation', pts:-10,
-    ts:logId, note:'', flag:null,
+    ts:logId, note: reason.trim(), flag:null,
     reversible:true, logType:'impulse'
   });
 
