@@ -220,53 +220,66 @@ body{
 .act-desc{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em}
 .act-done-label{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase}
 
-/* ── Unified Action Rows ── */
-.action-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:11px 12px;background:var(--bg3);
-  border:1px solid var(--border2);border-radius:var(--radius-sm);
-  margin-bottom:7px;gap:10px;
-  transition:border-color 0.15s,background 0.12s;
+/* ── Unified Action Cards (grid) ── */
+.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
+.action-card{
+  position:relative;
+  display:flex;flex-direction:column;align-items:flex-start;
+  padding:14px 12px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-sm);
+  cursor:pointer;min-height:76px;
+  transition:border-color 0.15s,background 0.12s,box-shadow 0.15s,transform 0.08s;
+  text-align:left;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
 }
-.action-row.done{opacity:0.45}
-.action-row.invalidated{opacity:0.3;border-color:var(--red-b)}
-.action-row-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
-.action-row-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:0.03em;text-transform:uppercase}
-.action-row-badge{
-  display:inline-block;font-family:var(--font-hud);font-size:9px;
-  color:var(--cyan);border:1px solid var(--cyan-b);border-radius:2px;
-  padding:1px 5px;letter-spacing:0.07em;text-transform:uppercase;margin-top:1px;width:fit-content;
+.action-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,255,136,0.04) 0%,transparent 60%);
+  opacity:0;transition:opacity 0.2s;pointer-events:none;border-radius:inherit;
 }
-.action-row-desc{font-family:var(--font-hud);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em}
-.action-row-status{font-family:var(--font-hud);font-size:10px;color:var(--text3);text-transform:uppercase}
-.action-row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.action-row-pts{font-family:var(--font-hud);font-size:12px;color:var(--neon);text-shadow:0 0 8px rgba(0,255,136,0.4);min-width:52px;text-align:right}
-.action-tap-btn{
-  font-family:var(--font-hud);font-size:10px;color:var(--neon);
-  cursor:pointer;padding:4px 9px;border:1px solid var(--neon-b);
-  border-radius:3px;background:var(--neon-dim);line-height:1;
-  letter-spacing:0.05em;text-transform:uppercase;
-  transition:background 0.12s,box-shadow 0.12s;
+.action-card:hover:not(.done):not(.invalidated){
+  border-color:var(--neon-b);
+  background:var(--bg4);
+  box-shadow:0 0 16px rgba(0,255,136,0.1),inset 0 1px 0 rgba(0,255,136,0.08);
 }
-.action-tap-btn:hover:not(:disabled){background:rgba(0,255,136,0.2);box-shadow:0 0 8px rgba(0,255,136,0.2)}
-.action-tap-btn:active:not(:disabled){transform:scale(0.95)}
-.action-tap-btn:disabled{opacity:0.3;cursor:not-allowed}
-.action-edit-btn{
-  font-family:var(--font-hud);font-size:10px;color:var(--text3);
-  cursor:pointer;padding:4px 8px;border:1px solid var(--border2);
-  border-radius:3px;background:transparent;line-height:1;
-  letter-spacing:0.04em;text-transform:uppercase;
-  transition:color 0.15s,border-color 0.15s;
+.action-card:hover:not(.done):not(.invalidated)::after{opacity:1}
+.action-card:active:not(.done):not(.invalidated){transform:scale(0.96)}
+.action-card.done{opacity:0.35;cursor:not-allowed;border-style:dashed}
+.action-card.invalidated{opacity:0.2;cursor:not-allowed;border-color:var(--red-b)}
+.action-card-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;pointer-events:none;padding-right:20px}
+.action-card-pts{font-family:var(--font-hud);font-size:14px;color:var(--neon);font-weight:400;text-shadow:0 0 10px rgba(0,255,136,0.5);pointer-events:none}
+.action-card-desc{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em;pointer-events:none}
+.action-card-status{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;pointer-events:none}
+.action-card-daily{
+  display:inline-block;font-family:var(--font-hud);font-size:8px;
+  color:var(--cyan);border:1px solid rgba(0,204,255,0.25);border-radius:2px;
+  padding:1px 5px;letter-spacing:0.07em;text-transform:uppercase;
+  margin-top:4px;pointer-events:none;
 }
-.action-edit-btn:hover{color:var(--amber);border-color:var(--amber-b)}
-.action-del-btn{
-  font-family:var(--font-hud);font-size:10px;color:var(--text3);
-  cursor:pointer;padding:4px 8px;border:1px solid var(--border2);
-  border-radius:3px;background:transparent;line-height:1;
-  letter-spacing:0.04em;text-transform:uppercase;
-  transition:color 0.15s,border-color 0.15s;
+/* Edit trigger — top-right corner pencil */
+.action-edit-trigger{
+  position:absolute;top:7px;right:7px;
+  font-size:12px;color:var(--text3);opacity:0;
+  cursor:pointer;padding:3px 5px;border-radius:3px;
+  border:1px solid transparent;
+  transition:opacity 0.15s,color 0.15s,border-color 0.15s,background 0.12s;
+  z-index:5;line-height:1;
+  pointer-events:all;
 }
-.action-del-btn:hover{color:var(--red);border-color:var(--red-b)}
+.action-card:hover .action-edit-trigger{opacity:1}
+.action-edit-trigger:hover{
+  color:var(--amber);border-color:var(--amber-b);
+  background:var(--amber-dim);opacity:1!important;
+}
+/* Pulse glow on card tap */
+@keyframes cardPulse{
+  0%{box-shadow:0 0 0 rgba(0,255,136,0)}
+  40%{box-shadow:0 0 20px rgba(0,255,136,0.35),inset 0 0 12px rgba(0,255,136,0.05)}
+  100%{box-shadow:0 0 0 rgba(0,255,136,0)}
+}
+.action-card.logging{animation:cardPulse 0.45s ease-out}
 
 /* ── Chore Buttons ── */
 .chore-btn{
@@ -585,7 +598,7 @@ body{
       <span class="card-title">// ACTION TERMINAL</span>
       <span class="badge badge-purple" id="actions-badge">READY</span>
     </div>
-    <div id="actions-list"></div>
+    <div class="actions-grid" id="actions-list"></div>
     <div class="add-chore-form">
       <div class="form-row">
         <input class="form-input" id="action-name" placeholder="action name" maxlength="40" />
@@ -732,6 +745,7 @@ body{
       </div>
       <div class="modal-btns">
         <button class="modal-btn-cancel" id="edit-action-cancel">CANCEL</button>
+        <button class="modal-btn-confirm red" id="edit-action-delete" style="flex:none;padding:11px 14px">DEL</button>
         <button class="modal-btn-confirm" id="edit-action-save">SAVE</button>
       </div>
     </div>
@@ -933,16 +947,18 @@ function getStatusLabel(a){
   return null;
 }
 
-// ── Render Actions (unified) ──────────────────────────────────────────
+// ── Render Actions (unified grid cards) ──────────────────────────────
 function renderActions(){
-  const list=document.getElementById('actions-list');
-  list.innerHTML='';
+  const grid=document.getElementById('actions-list');
+  grid.innerHTML='';
   if(!S.actions.length){
-    list.innerHTML='<div class="log-empty">NO ACTIONS YET — ADD ONE BELOW</div>';
+    grid.style.display='block';
+    grid.innerHTML='<div class="log-empty">NO ACTIONS YET — ADD ONE BELOW</div>';
     document.getElementById('actions-badge').textContent='0 ACTIONS';
     document.getElementById('actions-badge').className='badge badge-done';
     return;
   }
+  grid.style.display='';
   let doneCount=0,onceTotal=0;
   S.actions.forEach((a,i)=>{
     const disabled=isDisabled(a);
@@ -950,55 +966,41 @@ function renderActions(){
     if(a.once) onceTotal++;
     if(disabled) doneCount++;
 
-    const wrap=document.createElement('div');
-    wrap.className='action-row'+(disabled?(a.flag==='diet'&&S.daily.flags.dietInvalid?' invalidated':' done'):'');
+    const card=document.createElement('div');
+    const invalided=a.flag==='diet'&&S.daily.flags.dietInvalid;
+    card.className='action-card'+(disabled?(invalided?' invalidated':' done'):'');
 
-    const left=document.createElement('div');
-    left.className='action-row-left';
-    left.innerHTML=`
-      <span class="action-row-name">${escHtml(a.name)}</span>
-      ${a.once?'<span class="action-row-badge">DAILY</span>':''}
-      ${a.desc?`<span class="action-row-desc">${escHtml(a.desc)}</span>`:''}
-      ${label?`<span class="action-row-status">${label}</span>`:''}`;
+    // edit trigger (pencil in corner)
+    const editTrigger=document.createElement('button');
+    editTrigger.className='action-edit-trigger';
+    editTrigger.innerHTML='✎';
+    editTrigger.setAttribute('aria-label','edit '+a.name);
+    editTrigger.addEventListener('click',e=>{e.stopPropagation();openEditActionModal(i);});
 
-    const right=document.createElement('div');
-    right.className='action-row-right';
+    card.innerHTML=`
+      <span class="action-card-name">${escHtml(a.name)}</span>
+      <span class="action-card-pts">+${a.pts} PTS</span>
+      ${a.desc?`<span class="action-card-desc">${escHtml(a.desc)}</span>`:''}
+      ${a.once?'<span class="action-card-daily">DAILY</span>':''}
+      ${label?`<span class="action-card-status">${label}</span>`:''}`;
+    card.appendChild(editTrigger);
 
-    const ptsSpan=document.createElement('span');
-    ptsSpan.className='action-row-pts';
-    ptsSpan.textContent='+'+a.pts+' PTS';
-
-    const tapBtn=document.createElement('button');
-    tapBtn.className='action-tap-btn';
-    tapBtn.textContent='LOG';
-    tapBtn.disabled=disabled;
-    if(!disabled) tapBtn.addEventListener('click',()=>triggerAction(a));
-
-    const editBtn=document.createElement('button');
-    editBtn.className='action-edit-btn';
-    editBtn.textContent='EDIT';
-    editBtn.addEventListener('click',(e)=>{e.stopPropagation();openEditActionModal(i);});
-
-    const delBtn=document.createElement('button');
-    delBtn.className='action-del-btn';
-    delBtn.textContent='DEL';
-    delBtn.addEventListener('click',(e)=>{e.stopPropagation();deleteAction(i);});
-
-    right.appendChild(ptsSpan);
-    right.appendChild(tapBtn);
-    right.appendChild(editBtn);
-    right.appendChild(delBtn);
-    wrap.appendChild(left);
-    wrap.appendChild(right);
-    list.appendChild(wrap);
+    if(!disabled){
+      card.addEventListener('click',()=>{
+        card.classList.add('logging');
+        card.addEventListener('animationend',()=>card.classList.remove('logging'),{once:true});
+        triggerAction(a);
+      });
+    }
+    grid.appendChild(card);
   });
   const badge=document.getElementById('actions-badge');
   if(onceTotal>0){
     badge.textContent=doneCount+'/'+onceTotal+' DAILY DONE';
     badge.className='badge '+(doneCount===onceTotal?'badge-done':'badge-purple');
   } else {
-    badge.textContent=S.actions.length+' ACTIONS';
-    badge.className='badge badge-purple';
+    badge.textContent='READY';
+    badge.className='badge badge-active';
   }
 }
 
@@ -1306,7 +1308,6 @@ function deleteAction(i){
   if(!a) return;
   S.actions.splice(i,1);
   saveState();renderActions();
-  showToast('"'+a.name+'" REMOVED','');
 }
 
 let editingActionIdx=null;
@@ -1363,6 +1364,14 @@ document.getElementById('action-pts').addEventListener('keydown',(e)=>{
 });
 document.getElementById('edit-action-save').addEventListener('click',saveActionEdit);
 document.getElementById('edit-action-cancel').addEventListener('click',closeEditActionModal);
+document.getElementById('edit-action-delete').addEventListener('click',()=>{
+  if(editingActionIdx===null) return;
+  const a=S.actions[editingActionIdx];
+  const name=a?a.name:'';
+  closeEditActionModal();
+  deleteAction(editingActionIdx==null?-1:editingActionIdx);
+  if(name) showToast('"'+name.toUpperCase()+'" REMOVED','');
+});
 document.getElementById('edit-action-modal-wrap').addEventListener('click',e=>{
   if(e.target===document.getElementById('edit-action-modal-wrap')) closeEditActionModal();
 });
