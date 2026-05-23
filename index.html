@@ -220,6 +220,54 @@ body{
 .act-desc{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em}
 .act-done-label{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase}
 
+/* ── Unified Action Rows ── */
+.action-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 12px;background:var(--bg3);
+  border:1px solid var(--border2);border-radius:var(--radius-sm);
+  margin-bottom:7px;gap:10px;
+  transition:border-color 0.15s,background 0.12s;
+}
+.action-row.done{opacity:0.45}
+.action-row.invalidated{opacity:0.3;border-color:var(--red-b)}
+.action-row-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.action-row-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:0.03em;text-transform:uppercase}
+.action-row-badge{
+  display:inline-block;font-family:var(--font-hud);font-size:9px;
+  color:var(--cyan);border:1px solid var(--cyan-b);border-radius:2px;
+  padding:1px 5px;letter-spacing:0.07em;text-transform:uppercase;margin-top:1px;width:fit-content;
+}
+.action-row-desc{font-family:var(--font-hud);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em}
+.action-row-status{font-family:var(--font-hud);font-size:10px;color:var(--text3);text-transform:uppercase}
+.action-row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.action-row-pts{font-family:var(--font-hud);font-size:12px;color:var(--neon);text-shadow:0 0 8px rgba(0,255,136,0.4);min-width:52px;text-align:right}
+.action-tap-btn{
+  font-family:var(--font-hud);font-size:10px;color:var(--neon);
+  cursor:pointer;padding:4px 9px;border:1px solid var(--neon-b);
+  border-radius:3px;background:var(--neon-dim);line-height:1;
+  letter-spacing:0.05em;text-transform:uppercase;
+  transition:background 0.12s,box-shadow 0.12s;
+}
+.action-tap-btn:hover:not(:disabled){background:rgba(0,255,136,0.2);box-shadow:0 0 8px rgba(0,255,136,0.2)}
+.action-tap-btn:active:not(:disabled){transform:scale(0.95)}
+.action-tap-btn:disabled{opacity:0.3;cursor:not-allowed}
+.action-edit-btn{
+  font-family:var(--font-hud);font-size:10px;color:var(--text3);
+  cursor:pointer;padding:4px 8px;border:1px solid var(--border2);
+  border-radius:3px;background:transparent;line-height:1;
+  letter-spacing:0.04em;text-transform:uppercase;
+  transition:color 0.15s,border-color 0.15s;
+}
+.action-edit-btn:hover{color:var(--amber);border-color:var(--amber-b)}
+.action-del-btn{
+  font-family:var(--font-hud);font-size:10px;color:var(--text3);
+  cursor:pointer;padding:4px 8px;border:1px solid var(--border2);
+  border-radius:3px;background:transparent;line-height:1;
+  letter-spacing:0.04em;text-transform:uppercase;
+  transition:color 0.15s,border-color 0.15s;
+}
+.action-del-btn:hover{color:var(--red);border-color:var(--red-b)}
+
 /* ── Chore Buttons ── */
 .chore-btn{
   display:flex;align-items:center;justify-content:space-between;
@@ -537,20 +585,18 @@ body{
       <span class="card-title">// ACTION TERMINAL</span>
       <span class="badge badge-purple" id="actions-badge">READY</span>
     </div>
-    <div class="actions-grid" id="actions-grid"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">// CUSTOM CHORES</span>
-      <span class="badge badge-purple" id="chores-badge">0 DEFINED</span>
-    </div>
-    <div id="chores-list"></div>
+    <div id="actions-list"></div>
     <div class="add-chore-form">
       <div class="form-row">
-        <input class="form-input" id="chore-name" placeholder="chore name" maxlength="40" />
-        <input class="form-input form-input-pts" id="chore-pts" type="number" placeholder="pts" min="1" max="999" />
-        <button class="form-btn" id="add-chore-btn">ADD</button>
+        <input class="form-input" id="action-name" placeholder="action name" maxlength="40" />
+        <input class="form-input form-input-pts" id="action-pts" type="number" placeholder="pts" min="1" max="9999" />
+      </div>
+      <div class="form-row" style="align-items:center">
+        <input class="form-input" id="action-desc" placeholder="short description (optional)" maxlength="40" />
+        <label style="display:flex;align-items:center;gap:5px;font-family:var(--font-hud);font-size:10px;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0;cursor:pointer">
+          <input type="checkbox" id="action-once" style="accent-color:var(--neon);width:14px;height:14px" />DAILY
+        </label>
+        <button class="form-btn" id="add-action-btn">ADD</button>
       </div>
     </div>
   </div>
@@ -668,6 +714,30 @@ body{
   <div class="save-tag" id="save-status">STATE SAVED</div>
 </div>
 
+<div id="edit-action-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar"></div>
+    <div class="modal-inner">
+      <div class="modal-title">EDIT ACTION</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px">
+        <input class="modal-input" id="edit-action-name" placeholder="action name" maxlength="40" />
+        <div style="display:flex;gap:8px">
+          <input class="modal-input" id="edit-action-pts" type="number" placeholder="pts" min="1" max="9999" style="width:90px;flex:none" />
+          <input class="modal-input" id="edit-action-desc" placeholder="short description (optional)" maxlength="40" style="flex:1" />
+        </div>
+        <label style="display:flex;align-items:center;gap:7px;font-family:var(--font-hud);font-size:11px;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;padding:4px 0">
+          <input type="checkbox" id="edit-action-once" style="accent-color:var(--neon);width:15px;height:15px" />
+          DAILY LIMIT (once per day)
+        </label>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" id="edit-action-cancel">CANCEL</button>
+        <button class="modal-btn-confirm" id="edit-action-save">SAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="note-modal-wrap" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-top-bar"></div>
@@ -737,6 +807,15 @@ body{
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────
+const DEFAULT_ACTIONS = [
+  {id:'deep_work',  name:'Deep Work',   pts:10, desc:'~45 min focused', once:false, flag:null},
+  {id:'sneak_study',name:'Sneak Study', pts:3,  desc:'~15 min light',   once:false, flag:null},
+  {id:'workout',    name:'Workout',     pts:10, desc:'Full session',     once:true,  flag:'workout'},
+  {id:'diet',       name:'Diet',        pts:10, desc:'Clean eating',     once:true,  flag:'diet'},
+  {id:'wake',       name:'Wake',        pts:10, desc:'On time',          once:true,  flag:'wake'},
+  {id:'sleep',      name:'Sleep',       pts:10, desc:'On schedule',      once:true,  flag:'sleep'},
+];
+
 const DEFAULT = {
   points:0, lifetimePoints:0, lastUpdated: 0,
   nextDayPenalty:false,
@@ -748,7 +827,7 @@ const DEFAULT = {
     flags:{diet:false,workout:false,sleep:false,wake:false,dietInvalid:false},
     date:new Date().toDateString()
   },
-  plans:[], chores:[], logs:[]
+  plans:[], actions:[], logs:[]
 };
 
 function loadState(){
@@ -763,6 +842,18 @@ function loadState(){
       }
       saved.daily = {...JSON.parse(JSON.stringify(DEFAULT.daily)), date: today};
       saved.nextDayPenalty = false;
+    }
+    // Migrate: if no S.actions yet, seed from DEFAULT_ACTIONS + old chores
+    if(!saved.actions || !saved.actions.length){
+      saved.actions = JSON.parse(JSON.stringify(DEFAULT_ACTIONS));
+      if(saved.chores && saved.chores.length){
+        saved.chores.forEach(c=>{
+          saved.actions.push({
+            id:'chore_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+            name:c.name, pts:c.pts, desc:'', once:false, flag:null
+          });
+        });
+      }
     }
     return {
       ...JSON.parse(JSON.stringify(DEFAULT)),
@@ -830,96 +921,85 @@ async function loadStateAsync(){
 let S=loadState();
 let pendingAction=null;
 
-// ── Actions ────────────────────────────────────────────────────────────
-const ACTIONS=[
-  {id:'deep_work',name:'Deep Work',pts:10,desc:'~45 min focused',group:'study',once:false},
-  {id:'sneak_study',name:'Sneak Study',pts:3,desc:'~15 min light',group:'study',once:false},
-  {id:'workout',name:'Workout',pts:10,desc:'Full session',group:'body',once:true,flag:'workout'},
-  {id:'diet',name:'Diet',pts:10,desc:'Clean eating',group:'body',once:true,flag:'diet'},
-  {id:'wake',name:'Wake',pts:10,desc:'On time',group:'sleep',once:true,flag:'wake'},
-  {id:'sleep',name:'Sleep',pts:10,desc:'On schedule',group:'sleep',once:true,flag:'sleep'},
-];
-
+// ── Action helpers ────────────────────────────────────────────────────
 function isDisabled(a){
-  if(a.id==='diet') return S.daily.flags.dietInvalid || S.daily.flags.diet;
-  if(a.once && a.flag) return S.daily.flags[a.flag];
+  if(a.flag==='diet') return S.daily.flags.dietInvalid || S.daily.flags.diet;
+  if(a.once && a.flag) return !!S.daily.flags[a.flag];
   return false;
 }
 function getStatusLabel(a){
-  if(a.id==='diet' && S.daily.flags.dietInvalid) return 'INVALIDATED';
+  if(a.flag==='diet' && S.daily.flags.dietInvalid) return 'INVALIDATED';
   if(a.once && a.flag && S.daily.flags[a.flag]) return 'DONE TODAY';
   return null;
 }
 
-// ── Render Actions ────────────────────────────────────────────────────
+// ── Render Actions (unified) ──────────────────────────────────────────
 function renderActions(){
-  const grid=document.getElementById('actions-grid');
-  grid.innerHTML='';
-  let doneCount=0;
-  ACTIONS.forEach(a=>{
-    const disabled=isDisabled(a);
-    const label=getStatusLabel(a);
-    if(disabled) doneCount++;
-    const btn=document.createElement('button');
-    btn.className='act-btn'+(disabled?(a.id==='diet'&&S.daily.flags.dietInvalid?' invalidated':' done'):'');
-    btn.disabled=disabled;
-    btn.innerHTML=`<span class="act-name">${a.name}</span><span class="act-pts">+${a.pts} PTS</span><span class="act-desc">${a.desc}</span>${label?`<span class="act-done-label">${label}</span>`:''}`;
-    if(!disabled) btn.addEventListener('click',()=>triggerAction(a));
-    grid.appendChild(btn);
-  });
-  const badge=document.getElementById('actions-badge');
-  const total=ACTIONS.filter(a=>a.once).length;
-  badge.textContent=doneCount===0?'READY':doneCount+'/'+total+' DONE';
-  badge.className='badge '+(doneCount===total?'badge-done':'badge-purple');
-}
-
-// ── Render Chores ─────────────────────────────────────────────────────
-function renderChores(){
-  const list=document.getElementById('chores-list');
+  const list=document.getElementById('actions-list');
   list.innerHTML='';
-  if(!S.chores.length){
-    list.innerHTML='<div class="log-empty">NO CHORES YET — ADD ONE BELOW</div>';
-    document.getElementById('chores-badge').textContent='0 DEFINED';
+  if(!S.actions.length){
+    list.innerHTML='<div class="log-empty">NO ACTIONS YET — ADD ONE BELOW</div>';
+    document.getElementById('actions-badge').textContent='0 ACTIONS';
+    document.getElementById('actions-badge').className='badge badge-done';
     return;
   }
-  S.chores.forEach((c,i)=>{
+  let doneCount=0,onceTotal=0;
+  S.actions.forEach((a,i)=>{
+    const disabled=isDisabled(a);
+    const label=getStatusLabel(a);
+    if(a.once) onceTotal++;
+    if(disabled) doneCount++;
+
     const wrap=document.createElement('div');
-    wrap.className='chore-btn';
-    wrap.setAttribute('role','button');
-    wrap.setAttribute('tabindex','0');
+    wrap.className='action-row'+(disabled?(a.flag==='diet'&&S.daily.flags.dietInvalid?' invalidated':' done'):'');
 
     const left=document.createElement('div');
-    left.style.cssText='display:flex;flex-direction:column;gap:2px;pointer-events:none';
-    left.innerHTML=`<span class="chore-name" style="pointer-events:none">${escHtml(c.name)}</span><span style="font-family:var(--font-hud);font-size:10px;color:var(--text3);pointer-events:none;text-transform:uppercase;letter-spacing:0.06em">TAP TO LOG</span>`;
+    left.className='action-row-left';
+    left.innerHTML=`
+      <span class="action-row-name">${escHtml(a.name)}</span>
+      ${a.once?'<span class="action-row-badge">DAILY</span>':''}
+      ${a.desc?`<span class="action-row-desc">${escHtml(a.desc)}</span>`:''}
+      ${label?`<span class="action-row-status">${label}</span>`:''}`;
 
     const right=document.createElement('div');
-    right.style.cssText='display:flex;align-items:center;gap:10px;flex-shrink:0';
+    right.className='action-row-right';
 
     const ptsSpan=document.createElement('span');
-    ptsSpan.className='chore-pts';
-    ptsSpan.style.cssText='pointer-events:none';
-    ptsSpan.textContent='+'+c.pts+' PTS';
+    ptsSpan.className='action-row-pts';
+    ptsSpan.textContent='+'+a.pts+' PTS';
+
+    const tapBtn=document.createElement('button');
+    tapBtn.className='action-tap-btn';
+    tapBtn.textContent='LOG';
+    tapBtn.disabled=disabled;
+    if(!disabled) tapBtn.addEventListener('click',()=>triggerAction(a));
+
+    const editBtn=document.createElement('button');
+    editBtn.className='action-edit-btn';
+    editBtn.textContent='EDIT';
+    editBtn.addEventListener('click',(e)=>{e.stopPropagation();openEditActionModal(i);});
 
     const delBtn=document.createElement('button');
+    delBtn.className='action-del-btn';
     delBtn.textContent='DEL';
-    delBtn.style.cssText='font-family:var(--font-hud);font-size:10px;color:var(--text3);cursor:pointer;padding:4px 8px;border:1px solid var(--border2);border-radius:3px;background:transparent;line-height:1;letter-spacing:0.04em;text-transform:uppercase;transition:color 0.15s,border-color 0.15s';
-    delBtn.setAttribute('aria-label','delete chore '+c.name);
-    delBtn.addEventListener('mouseenter',()=>{delBtn.style.color='var(--red)';delBtn.style.borderColor='var(--red-b)'});
-    delBtn.addEventListener('mouseleave',()=>{delBtn.style.color='';delBtn.style.borderColor=''});
-    delBtn.addEventListener('click',(e)=>{e.stopPropagation();deleteChore(i);});
+    delBtn.addEventListener('click',(e)=>{e.stopPropagation();deleteAction(i);});
 
     right.appendChild(ptsSpan);
+    right.appendChild(tapBtn);
+    right.appendChild(editBtn);
     right.appendChild(delBtn);
     wrap.appendChild(left);
     wrap.appendChild(right);
-
-    wrap.addEventListener('click',()=>triggerChore(i));
-    wrap.addEventListener('keydown',(e)=>{
-      if(e.key==='Enter'||e.key===' '){e.preventDefault();triggerChore(i);}
-    });
     list.appendChild(wrap);
   });
-  document.getElementById('chores-badge').textContent=S.chores.length+' DEFINED';
+  const badge=document.getElementById('actions-badge');
+  if(onceTotal>0){
+    badge.textContent=doneCount+'/'+onceTotal+' DAILY DONE';
+    badge.className='badge '+(doneCount===onceTotal?'badge-done':'badge-purple');
+  } else {
+    badge.textContent=S.actions.length+' ACTIONS';
+    badge.className='badge badge-purple';
+  }
 }
 
 // ── Render Logs ───────────────────────────────────────────────────────
@@ -1073,7 +1153,6 @@ function renderStats(){
 function render(){
   renderStats();
   renderActions();
-  renderChores();
   renderPlans();
   renderLogs();
   renderDopamine();
@@ -1190,54 +1269,109 @@ document.getElementById('note-modal-wrap').addEventListener('click',e=>{
   if(e.target===document.getElementById('note-modal-wrap')) commitAction('');
 });
 
-// ── Chores ────────────────────────────────────────────────────────────
-function addChore(){
-  const nameEl=document.getElementById('chore-name');
-  const ptsEl=document.getElementById('chore-pts');
-  const name=nameEl.value.trim();
-  const ptsRaw=ptsEl.value.trim();
-  const pts=Math.floor(Number(ptsRaw));
-
-  if(!name){showToast('CHORE NAME IS REQUIRED','red');nameEl.focus();return;}
-  if(!ptsRaw||isNaN(pts)||pts<1){showToast('POINTS MUST BE ≥ 1','red');ptsEl.focus();return;}
-  if(pts>9999){showToast('MAX 9999 POINTS PER CHORE','red');ptsEl.focus();return;}
-  if(S.chores.some(c=>c.name.toLowerCase()===name.toLowerCase())){
-    showToast('CHORE ALREADY EXISTS','red');nameEl.focus();return;
-  }
-
-  S.chores.push({name,pts});
-  nameEl.value='';ptsEl.value='';nameEl.focus();
-  saveState();renderChores();
-  showToast('"'+name+'" ADDED · +'+pts+' PTS EACH','green');
-}
-
-document.getElementById('add-chore-btn').addEventListener('click',addChore);
-document.getElementById('chore-name').addEventListener('keydown',(e)=>{
-  if(e.key==='Enter'){e.preventDefault();
-    const ptsEl=document.getElementById('chore-pts');
-    if(!ptsEl.value.trim()) ptsEl.focus(); else addChore();
-  }
-});
-document.getElementById('chore-pts').addEventListener('keydown',(e)=>{
-  if(e.key==='Enter'){e.preventDefault();addChore();}
-});
-
+// ── Action Management ─────────────────────────────────────────────────
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function addAction(){
+  const nameEl=document.getElementById('action-name');
+  const ptsEl=document.getElementById('action-pts');
+  const descEl=document.getElementById('action-desc');
+  const onceEl=document.getElementById('action-once');
+  const name=nameEl.value.trim();
+  const ptsRaw=ptsEl.value.trim();
+  const pts=Math.floor(Number(ptsRaw));
+  const desc=descEl.value.trim();
+  const once=onceEl.checked;
 
-function triggerChore(i){
-  const c=S.chores[i];
-  if(!c) return;
-  pendingAction={id:'chore_'+Date.now(),name:c.name,pts:c.pts,once:false,isChore:true};
-  document.getElementById('note-modal-title').textContent='LOG CHORE: '+c.name.toUpperCase()+' (+'+c.pts+' PTS)';
-  document.getElementById('note-input').value='';
-  document.getElementById('note-modal-wrap').classList.add('open');
+  if(!name){showToast('ACTION NAME IS REQUIRED','red');nameEl.focus();return;}
+  if(!ptsRaw||isNaN(pts)||pts<1){showToast('POINTS MUST BE ≥ 1','red');ptsEl.focus();return;}
+  if(pts>9999){showToast('MAX 9999 POINTS','red');ptsEl.focus();return;}
+  if(S.actions.some(a=>a.name.toLowerCase()===name.toLowerCase())){
+    showToast('ACTION ALREADY EXISTS','red');nameEl.focus();return;
+  }
+
+  S.actions.push({
+    id:'action_'+Date.now(),
+    name, pts, desc, once, flag:null
+  });
+  nameEl.value='';ptsEl.value='';descEl.value='';onceEl.checked=false;
+  nameEl.focus();
+  saveState();renderActions();
+  showToast('"'+name.toUpperCase()+'" ADDED · +'+pts+' PTS','green');
 }
 
-function deleteChore(i){
-  S.chores.splice(i,1);saveState();renderChores();showToast('CHORE REMOVED','');
+function deleteAction(i){
+  const a=S.actions[i];
+  if(!a) return;
+  S.actions.splice(i,1);
+  saveState();renderActions();
+  showToast('"'+a.name+'" REMOVED','');
 }
+
+let editingActionIdx=null;
+
+function openEditActionModal(i){
+  const a=S.actions[i];
+  if(!a) return;
+  editingActionIdx=i;
+  document.getElementById('edit-action-name').value=a.name;
+  document.getElementById('edit-action-pts').value=a.pts;
+  document.getElementById('edit-action-desc').value=a.desc||'';
+  document.getElementById('edit-action-once').checked=!!a.once;
+  document.getElementById('edit-action-modal-wrap').classList.add('open');
+  setTimeout(()=>document.getElementById('edit-action-name').focus(),40);
+}
+
+function closeEditActionModal(){
+  document.getElementById('edit-action-modal-wrap').classList.remove('open');
+  editingActionIdx=null;
+}
+
+function saveActionEdit(){
+  if(editingActionIdx===null) return;
+  const a=S.actions[editingActionIdx];
+  if(!a){closeEditActionModal();return;}
+  const name=document.getElementById('edit-action-name').value.trim();
+  const ptsRaw=document.getElementById('edit-action-pts').value.trim();
+  const pts=Math.floor(Number(ptsRaw));
+  const desc=document.getElementById('edit-action-desc').value.trim();
+  const once=document.getElementById('edit-action-once').checked;
+
+  if(!name){showToast('NAME IS REQUIRED','red');return;}
+  if(!ptsRaw||isNaN(pts)||pts<1){showToast('POINTS MUST BE ≥ 1','red');return;}
+  if(pts>9999){showToast('MAX 9999 POINTS','red');return;}
+  const conflict=S.actions.findIndex(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(conflict!==-1&&conflict!==editingActionIdx){showToast('NAME ALREADY EXISTS','red');return;}
+
+  a.name=name;a.pts=pts;a.desc=desc;a.once=once;
+  // keep a.flag intact (flag-tracked actions keep their tracking)
+  saveState();renderActions();
+  closeEditActionModal();
+  showToast('"'+name.toUpperCase()+'" UPDATED','green');
+}
+
+document.getElementById('add-action-btn').addEventListener('click',addAction);
+document.getElementById('action-name').addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){e.preventDefault();
+    const ptsEl=document.getElementById('action-pts');
+    if(!ptsEl.value.trim()) ptsEl.focus(); else addAction();
+  }
+});
+document.getElementById('action-pts').addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){e.preventDefault();addAction();}
+});
+document.getElementById('edit-action-save').addEventListener('click',saveActionEdit);
+document.getElementById('edit-action-cancel').addEventListener('click',closeEditActionModal);
+document.getElementById('edit-action-modal-wrap').addEventListener('click',e=>{
+  if(e.target===document.getElementById('edit-action-modal-wrap')) closeEditActionModal();
+});
+document.getElementById('edit-action-name').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();saveActionEdit();}
+});
+document.getElementById('edit-action-pts').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();saveActionEdit();}
+});
 
 // ── Dopamine ──────────────────────────────────────────────────────────
 function renderDopamine(){
@@ -1613,6 +1747,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closePlanModal();
     closeUndoModal();
+    closeEditActionModal();
     document.getElementById('note-modal-wrap').classList.remove('open');
     document.getElementById('nudity-modal-wrap').classList.remove('open');
   }
