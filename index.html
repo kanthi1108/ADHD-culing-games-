@@ -839,6 +839,7 @@ const DEFAULT = {
     dopaUsed:0, dopaLimit:60, dopaLocked:false,
     earnedToday:0, actionCount:0,
     flags:{diet:false,workout:false,sleep:false,wake:false,dietInvalid:false},
+    loggedOnce:[],
     date:new Date().toDateString()
   },
   plans:[], actions:[], logs:[]
@@ -939,11 +940,13 @@ let pendingAction=null;
 function isDisabled(a){
   if(a.flag==='diet') return S.daily.flags.dietInvalid || S.daily.flags.diet;
   if(a.once && a.flag) return !!S.daily.flags[a.flag];
+  if(a.once && !a.flag) return (S.daily.loggedOnce||[]).includes(a.id);
   return false;
 }
 function getStatusLabel(a){
   if(a.flag==='diet' && S.daily.flags.dietInvalid) return 'INVALIDATED';
   if(a.once && a.flag && S.daily.flags[a.flag]) return 'DONE TODAY';
+  if(a.once && !a.flag && (S.daily.loggedOnce||[]).includes(a.id)) return 'DONE TODAY';
   return null;
 }
 
@@ -1100,6 +1103,9 @@ function executeDeleteLog(logId){
   }
 
   if(l.flag) S.daily.flags[l.flag]=false;
+  if(l.actionId && S.daily.loggedOnce){
+    S.daily.loggedOnce=S.daily.loggedOnce.filter(id=>id!==l.actionId);
+  }
 
   if(l.logType === 'spend' && l.spendAmt){
     S.daily.spendUsed = Math.max(0, S.daily.spendUsed - l.spendAmt);
@@ -1251,6 +1257,10 @@ function commitAction(note){
   S.daily.earnedToday+=a.pts;
   S.daily.actionCount+=1;
   if(a.flag) S.daily.flags[a.flag]=true;
+  if(a.once && !a.flag){
+    if(!S.daily.loggedOnce) S.daily.loggedOnce=[];
+    if(!S.daily.loggedOnce.includes(a.id)) S.daily.loggedOnce.push(a.id);
+  }
 
   S.logs.push({
     id:Date.now(), action:a.name, actionId:a.id||'',
