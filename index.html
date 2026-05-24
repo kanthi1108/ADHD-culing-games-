@@ -1376,10 +1376,11 @@ document.getElementById('edit-action-save').addEventListener('click',saveActionE
 document.getElementById('edit-action-cancel').addEventListener('click',closeEditActionModal);
 document.getElementById('edit-action-delete').addEventListener('click',()=>{
   if(editingActionIdx===null) return;
-  const a=S.actions[editingActionIdx];
+  const idx=editingActionIdx;          // capture BEFORE close nulls it
+  const a=S.actions[idx];
   const name=a?a.name:'';
   closeEditActionModal();
-  deleteAction(editingActionIdx==null?-1:editingActionIdx);
+  deleteAction(idx);
   if(name) showToast('"'+name.toUpperCase()+'" REMOVED','');
 });
 document.getElementById('edit-action-modal-wrap').addEventListener('click',e=>{
