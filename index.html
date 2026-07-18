@@ -507,6 +507,27 @@ body{
   from{box-shadow:none}
   to{box-shadow:var(--red-glow)}
 }
+
+/* ── Recreation Engine ── */
+.rec-template-card{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px;background:var(--bg4);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);margin-bottom:8px;
+  transition:border-color 0.15s,background 0.12s;
+}
+.rec-template-card:hover{border-color:var(--neon-b);background:var(--bg5)}
+.rec-cat-badge{
+  font-family:var(--font-hud);font-size:8px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;
+}
+.rec-name{font-size:14px;font-weight:700;color:var(--text);letter-spacing:0.05em;text-transform:uppercase;}
+.rec-meta{font-family:var(--font-hud);font-size:11px;color:var(--neon);margin-top:2px}
+.rec-start-btn{
+  background:var(--neon-dim);color:var(--neon);border:1px solid var(--neon-b);
+  border-radius:3px;padding:6px 12px;font-family:var(--font-hud);font-size:12px;
+  cursor:pointer;letter-spacing:0.05em;transition:background 0.1s;
+}
+.rec-start-btn:hover{background:var(--neon-b)}
 </style>
 </head>
 <body>
@@ -603,41 +624,25 @@ body{
     </div>
   </div>
 
-  <div class="card" id="dopa-card">
-    <div class="card-header">
-      <span class="card-title">DOPAMINE CONTROL</span>
-      <span class="badge badge-active" id="dopa-badge">ACTIVE</span>
-    </div>
-    <div class="dopa-locked-banner" id="dopa-locked-banner">
-      ⛔ LOCKED FOR TODAY — VIOLATION RECORDED
-    </div>
-    <div class="dopa-info" id="dopa-info">
-      <div class="dopa-time-block">
-        <span class="dopa-time-num" id="dopa-time-num">60</span>
-        <span class="dopa-time-unit">MIN LEFT</span>
-      </div>
-      <div class="dopa-right">
-        <div class="dopa-used-line"><span class="dopa-used-strong" id="dopa-used-val">0</span> / <span id="dopa-limit-val">60</span> MIN USED</div>
+  <div class="card" id="recreation-card">
+    <div class="card-header" style="display:flex;justify-content:space-between">
+      <span class="card-title">RECREATION ENGINE</span>
+      <div style="display:flex;gap:8px">
+        <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3)" onclick="openCustomRecModal()" title="Custom Session">⚡</button>
+        <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3)" onclick="openTemplateModal()">+</button>
       </div>
     </div>
-    <div class="progress-row" style="margin-bottom:12px">
-      <span class="progress-label">USAGE</span>
-      <div class="bar-wrap"><div class="bar bar-cyan" id="bar-dopa2" style="width:0%"></div></div>
-      <span class="bar-end" id="end-dopa2">0%</span>
+    
+    <div id="rec-active-view" style="display:none;text-align:center;padding:10px 0 20px">
+      <div id="rec-active-name" style="color:var(--neon);font-size:16px;font-weight:bold;letter-spacing:0.1em;margin-bottom:8px">SESSION</div>
+      <div id="rec-timer-display" style="font-family:var(--font-hud);font-size:42px;color:var(--text);letter-spacing:0.05em;line-height:1;margin-bottom:12px;text-shadow:0 0 15px rgba(255,255,255,0.1)">00:00</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:20px" id="rec-active-meta">SCHEDULED</div>
+      <button class="plan-action-btn wdr" style="width:100%;padding:12px;font-size:14px" onclick="stopRecreation()">STOP & REFUND</button>
     </div>
-    <div class="dopa-btns">
-      <button class="dopa-btn use-btn" id="dopa-use-btn" onclick="useDopamine()">
-        <span class="dopa-btn-name">USE 10 MIN</span>
-        <span class="dopa-btn-cost">−10 PTS</span>
-      </button>
-      <button class="dopa-btn impulse-btn" id="dopa-impulse-btn" onclick="dopamineImpulse()">
-        <span class="dopa-btn-name">IMPULSE</span>
-        <span class="dopa-btn-cost">&gt;10 SEC · −10 PTS</span>
-      </button>
-      <button class="dopa-btn nudity-btn" id="dopa-nudity-btn" onclick="dopamineNudity()">
-        <span class="dopa-btn-name">NUDITY</span>
-        <span class="dopa-btn-cost">−20 PTS · LOCK</span>
-      </button>
+
+    <div id="rec-templates-view">
+      <div id="rec-templates-list" style="display:flex;flex-direction:column">
+      </div>
     </div>
   </div>
 
@@ -842,6 +847,77 @@ body{
   </div>
 </div>
 
+<div id="rec-template-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar cyan"></div>
+    <div class="modal-inner">
+      <div class="modal-title" id="rec-template-modal-title">CREATE TEMPLATE</div>
+      <div style="margin-bottom:12px">
+        <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">NAME</label>
+        <input type="text" class="modal-input" id="rec-tpl-name" placeholder="Anime, Gaming..." maxlength="30" style="width:100%"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">CATEGORY</label>
+        <select class="modal-input" id="rec-tpl-cat" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px">
+          <option>Passive</option>
+          <option>Social</option>
+          <option>Entertainment</option>
+          <option>Infinite Feed</option>
+          <option>High Stimulation</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div>
+          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">MINUTES</label>
+          <input type="number" class="modal-input" id="rec-tpl-mins" placeholder="30" min="1" style="width:100%" />
+        </div>
+        <div>
+          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">POINT COST</label>
+          <input type="number" class="modal-input" id="rec-tpl-pts" placeholder="40" min="0" style="width:100%" />
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-top:10px;border-top:1px solid var(--border)">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);cursor:pointer">
+          <input type="checkbox" id="rec-tpl-active" style="accent-color:var(--neon);width:16px;height:16px">
+          ACTIVE TEMPLATE
+        </label>
+        <button id="rec-tpl-delete-btn" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer;display:none;font-family:var(--font-hud);letter-spacing:0.1em" onclick="deleteRecTemplate()">DELETE</button>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" onclick="closeRecTemplateModal()">CANCEL</button>
+        <button class="modal-btn-confirm cyan" onclick="saveRecTemplate()">SAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="rec-custom-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar amber"></div>
+    <div class="modal-inner">
+      <div class="modal-title" style="color:var(--amber)">⚡ CUSTOM SESSION</div>
+      <div style="margin-bottom:12px">
+        <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">NAME</label>
+        <input type="text" class="modal-input" id="rec-custom-name" placeholder="Movie, Hangout..." maxlength="30" style="width:100%" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div>
+          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">MINUTES</label>
+          <input type="number" class="modal-input" id="rec-custom-mins" placeholder="120" min="1" style="width:100%" />
+        </div>
+        <div>
+          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">POINT COST</label>
+          <input type="number" class="modal-input" id="rec-custom-pts" placeholder="100" min="0" style="width:100%" />
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" onclick="closeRecCustomModal()">CANCEL</button>
+        <button class="modal-btn-confirm amber" onclick="startCustomRec()">START TIMER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="weekly-review-modal" class="modal-overlay">
   <div class="modal-box" style="max-width:380px">
     <div class="modal-top-bar" style="background:var(--neon)"></div>
@@ -921,7 +997,9 @@ const DEFAULT = {
     loggedOnce:[],
     date:new Date().toDateString()
   },
-  plans:[], actions:[], logs:[]
+  plans:[], actions:[], logs:[],
+  recreationTemplates:[],
+  activeRecreation:null
 };
 
 function loadState(){
@@ -930,6 +1008,10 @@ function loadState(){
     if(!raw) return structuredClone(DEFAULT);
     const saved = JSON.parse(raw);
     const today = new Date().toDateString();
+    
+    if(!saved.recreationTemplates) saved.recreationTemplates = [];
+    if(!saved.hasOwnProperty('activeRecreation')) saved.activeRecreation = null;
+
     if(!saved.daily || saved.daily.date !== today){
       if(saved.nextDayPenalty){
         saved.points = Math.max(0, (saved.points||0) - 50);
@@ -1191,13 +1273,36 @@ function renderLogs(){
     const isToday=t.toDateString()===todayStr;
     const logId=l.id||l.ts;
 
-    const ptsColor=l.pts>=0?'var(--neon)':'var(--red)';
-    const ptsText=(l.pts>=0?'+':'')+l.pts;
-
+    let ptsEl = '';
+    let bodyEl = '';
     const reversible = (l.reversible !== false);
 
-    const ptsEl=`<span class="log-pts" style="color:${ptsColor};text-shadow:${l.pts>=0?'0 0 8px rgba(0,255,136,0.4)':'0 0 8px rgba(255,59,59,0.4)'}">${ptsText}</span>`;
-    const bodyEl=`<div class="log-body"><div class="log-action">${escHtml(l.action)}</div>${l.note?`<div class="log-note">${escHtml(l.note)}</div>`:''}<div class="log-time">${dateStr} · ${tStr}</div></div>`;
+    if (l.logType === 'rec_start') {
+      const name = escHtml((l.custom ? '⚡ ' : '') + (l.templateName || 'SESSION'));
+      const time = l.scheduledMinutes != null ? l.scheduledMinutes + ' MIN' : '';
+      const cost = l.scheduledCost != null ? l.scheduledCost : Math.abs(l.pts);
+      ptsEl = `<span class="log-pts" style="color:var(--amber);font-size:12px;font-family:var(--font-ui);text-shadow:none">▶</span>`;
+      bodyEl = `<div class="log-body">
+        <div class="log-action" style="color:var(--text);letter-spacing:0.05em">${name}</div>
+        <div class="log-note" style="color:var(--text3);font-family:var(--font-hud);font-size:10px">SCHEDULED: ${time} · -${cost} PTS</div>
+        <div class="log-time">${dateStr} · ${tStr}</div>
+      </div>`;
+    } else if (l.logType === 'rec_stop') {
+      const name = escHtml((l.custom ? '⚡ ' : '') + (l.templateName || 'SESSION'));
+      const refund = l.refundedPts > 0 ? ` <span style="color:var(--cyan)">[+${l.refundedPts} PTS REFUND]</span>` : '';
+      const elapsed = l.elapsedMinutes != null ? `${l.elapsedMinutes} MIN` : '';
+      ptsEl = `<span class="log-pts" style="color:var(--text3);font-size:12px;font-family:var(--font-ui);text-shadow:none">■</span>`;
+      bodyEl = `<div class="log-body">
+        <div class="log-action" style="color:var(--text3);letter-spacing:0.05em">${name}</div>
+        <div class="log-note" style="color:var(--text3);font-family:var(--font-hud);font-size:10px">ELAPSED: ${elapsed}${refund}</div>
+        <div class="log-time">${dateStr} · ${tStr}</div>
+      </div>`;
+    } else {
+      const ptsColor=l.pts>=0?'var(--neon)':'var(--red)';
+      const ptsText=(l.pts>=0?'+':'')+l.pts;
+      ptsEl=`<span class="log-pts" style="color:${ptsColor};text-shadow:${l.pts>=0?'0 0 8px rgba(0,255,136,0.4)':'0 0 8px rgba(255,59,59,0.4)'}">${ptsText}</span>`;
+      bodyEl=`<div class="log-body"><div class="log-action">${escHtml(l.action)}</div>${l.note?`<div class="log-note">${escHtml(l.note)}</div>`:''}<div class="log-time">${dateStr} · ${tStr}</div></div>`;
+    }
 
     let actionEl='';
     if(isToday){
@@ -1507,7 +1612,7 @@ function render(){
   renderActions();
   renderPlans();
   renderLogs();
-  renderDopamine();
+  renderRecreation();
   renderSpending();
 }
 
@@ -1568,7 +1673,7 @@ function commitAction(note){
       ts:logTs, note:note||'', flag:null,
       reversible:true, logType:'impulse'
     });
-    saveState();renderStats();renderDopamine();renderLogs();
+    saveState();renderStats();renderRecreation();renderLogs();
     spawnFloatingPts(-10, false);
     flashPoints();
     showToast('IMPULSE PENALTY: −10 PTS','red');
@@ -1740,107 +1845,318 @@ document.getElementById('edit-action-pts').addEventListener('keydown',e=>{
 });
 
 
-function renderDopamine(){
-  const d=S.daily;
-  const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
-  const locked=d.dopaLocked;
-  const limitReached=rem<=0;
-  const noPoints=S.points<10;
+let recTimerInterval = null;
 
-  const dopaPct=Math.min(100,Math.round((d.dopaUsed/d.dopaLimit)*100));
-  const bar2=document.getElementById('bar-dopa2');
-  bar2.style.width=dopaPct+'%';
-  bar2.className='bar '+(locked?'bar-red':dopaPct>=100?'bar-red':dopaPct>=70?'bar-amber':'bar-cyan');
-  document.getElementById('end-dopa2').textContent=dopaPct+'%';
-
-  const timeEl=document.getElementById('dopa-time-num');
-  timeEl.textContent=rem;
-  timeEl.className='dopa-time-num'+(rem===0?' zero':rem<=20?' amber':'');
-
-  document.getElementById('dopa-used-val').textContent=d.dopaUsed;
-  document.getElementById('dopa-limit-val').textContent=d.dopaLimit;
-
-  const badge=document.getElementById('dopa-badge');
-  if(locked){badge.className='badge badge-locked';badge.textContent='LOCKED';}
-  else if(limitReached){badge.className='badge badge-done';badge.textContent='LIMIT HIT';}
-  else if(rem<=20){badge.className='badge badge-purple';badge.textContent='LOW · '+rem+'M';}
-  else{badge.className='badge badge-active';badge.textContent='ACTIVE';}
-
-  document.getElementById('dopa-locked-banner').className='dopa-locked-banner'+(locked?' show':'');
-  document.getElementById('dopa-card').className='card'+(locked?' locked':'');
-  document.getElementById('dopa-use-btn').disabled=locked||noPoints||limitReached;
+function formatRecTime(ms) {
+  const isNegative = ms < 0;
+  const absMs = Math.abs(ms);
+  const totalSeconds = Math.floor(absMs / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  const mStr = m.toString().padStart(2, '0');
+  const sStr = s.toString().padStart(2, '0');
+  return (isNegative ? '-' : '') + mStr + ':' + sStr;
 }
 
-function useDopamine(){
-  const d=S.daily;
-  if(d.dopaLocked){showToast('DOPAMINE LOCKED FOR TODAY','red');return;}
-  if(S.points<10){showToast('NOT ENOUGH POINTS','red');return;}
-  const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
-  if(rem<=0){showToast('DAILY LIMIT REACHED','red');return;}
-
-  S.points = S.points - 10; 
-  d.spentToday+=10;
-  d.dopaUsed+=10;
-  if(d.dopaUsed>=d.dopaLimit) S.nextDayPenalty=true;
-
-  const logTs=Date.now();
-  S.logs.push({
-    id:logTs + '_' + Math.random().toString(36).slice(2,6), action:'Dopamine · 10 min', pts:-10,
-    ts:logTs, note:'', flag:null,
-    reversible:true, logType:'dopa', dopaAmt:10
-  });
-
-  saveState();renderStats();renderDopamine();renderLogs();
-  spawnFloatingPts(-10, false);
-  flashPoints();
-  showToast('10 MIN USED · '+Math.max(0,d.dopaLimit-d.dopaUsed)+'M REMAINING','');
-}
-
-function dopamineImpulse(){
-  pendingAction = { id: 'impulse_log', name: 'Impulse Violation', pts: -10, isImpulse: true };
-  const titleEl = document.getElementById('note-modal-title');
-  titleEl.textContent = '⚠ LOG IMPULSE VIOLATION';
-  titleEl.className = 'modal-title red'; 
-  document.getElementById('note-input').value = '';
-  document.getElementById('note-input').placeholder = 'what was the impulse? (optional)';
-  document.getElementById('note-modal-wrap').classList.add('open');
-}
-
-function dopamineNudity(){
-  document.getElementById('nudity-modal-wrap').classList.add('open');
-}
-
-function executeNudity(){
-  document.getElementById('nudity-modal-wrap').classList.remove('open');
-  const d=S.daily;
+function tickRecTimer() {
+  if(!S.activeRecreation) return;
+  const elapsedMs = Date.now() - S.activeRecreation.startedAt;
+  const scheduledMs = S.activeRecreation.scheduledMinutes * 60000;
+  const remainingMs = scheduledMs - elapsedMs;
   
-  S.points = S.points - 20; 
-  d.spentToday+=20;
-  d.dopaLocked=true;
-  S.nextDayPenalty=true;
-
-  const logTs=Date.now();
-  S.logs.push({
-    id:logTs + '_' + Math.random().toString(36).slice(2,6), action:'Nudity Violation', pts:-20,
-    ts:logTs, note:'', flag:null,
-    reversible:false,  
-    logType:'nudity'
-  });
-
-  saveState();renderStats();renderDopamine();renderLogs();
-  spawnFloatingPts(-20, false);
-  flashPoints();
-  showToast('LOCKED · −20 PTS · REDUCED LIMIT TOMORROW','red');
+  const display = document.getElementById('rec-timer-display');
+  const meta = document.getElementById('rec-active-meta');
+  
+  if (remainingMs <= 0) {
+    display.textContent = '00:00';
+    meta.textContent = 'SESSION COMPLETE';
+    meta.style.color = 'var(--neon)';
+    meta.style.fontWeight = 'bold';
+  } else {
+    display.textContent = formatRecTime(remainingMs);
+    meta.textContent = 'SCHEDULED: ' + S.activeRecreation.scheduledMinutes + ' MIN · ' + S.activeRecreation.scheduledCost + ' PTS';
+    meta.style.color = 'var(--text3)';
+    meta.style.fontWeight = 'normal';
+  }
 }
 
-document.getElementById('nudity-confirm').addEventListener('click',executeNudity);
-document.getElementById('nudity-cancel').addEventListener('click',()=>{
-  document.getElementById('nudity-modal-wrap').classList.remove('open');
-});
-document.getElementById('nudity-modal-wrap').addEventListener('click',e=>{
-  if(e.target===document.getElementById('nudity-modal-wrap'))
-    document.getElementById('nudity-modal-wrap').classList.remove('open');
-});
+// ── Recreation Engine ──
+function renderRecreation(){
+  if (S.activeRecreation) {
+    document.getElementById('rec-active-view').style.display = 'block';
+    document.getElementById('rec-templates-view').style.display = 'none';
+    document.getElementById('rec-active-name').textContent = S.activeRecreation.custom ? '⚡ ' + (S.activeRecreation.templateName || 'CUSTOM') : (S.activeRecreation.templateName || 'SESSION');
+    
+    if (!recTimerInterval) {
+      recTimerInterval = setInterval(tickRecTimer, 1000);
+    }
+    tickRecTimer();
+  } else {
+    document.getElementById('rec-active-view').style.display = 'none';
+    document.getElementById('rec-templates-view').style.display = 'block';
+    const list = document.getElementById('rec-templates-list');
+    list.innerHTML = '';
+    
+    const visibleTpls = S.recreationTemplates.filter(t => !t.deleted);
+    if(visibleTpls.length === 0){
+      list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;margin:20px 0;letter-spacing:0.05em">NO RECREATION TEMPLATES YET.</div>';
+    } else {
+      visibleTpls.forEach(t => {
+        if(!t.active) return;
+        const div = document.createElement('div');
+        div.className = 'rec-template-card';
+        div.innerHTML = `
+          <div>
+            <div class="rec-cat-badge">${t.category}</div>
+            <div class="rec-name">${t.name}</div>
+            <div class="rec-meta">${t.minutes} MIN · ${t.pts} PTS</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3);font-size:14px;background:none;border:none;cursor:pointer" onclick="openTemplateModal('${t.id}')">✎</button>
+            <button class="rec-start-btn" onclick="startRecreation('${t.id}')">START</button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+  }
+}
+
+let editingRecTemplateId = null;
+function openTemplateModal(id = null){
+  editingRecTemplateId = id;
+  const title = document.getElementById('rec-template-modal-title');
+  const nameInp = document.getElementById('rec-tpl-name');
+  const catInp = document.getElementById('rec-tpl-cat');
+  const minsInp = document.getElementById('rec-tpl-mins');
+  const ptsInp = document.getElementById('rec-tpl-pts');
+  const actInp = document.getElementById('rec-tpl-active');
+  const delBtn = document.getElementById('rec-tpl-delete-btn');
+  
+  if(id){
+    title.textContent = 'EDIT TEMPLATE';
+    delBtn.style.display = 'block';
+    const t = S.recreationTemplates.find(x => x.id === id);
+    if(t) {
+      nameInp.value = t.name;
+      catInp.value = t.category;
+      minsInp.value = t.minutes;
+      ptsInp.value = t.pts;
+      actInp.checked = !!t.active;
+    }
+  } else {
+    title.textContent = 'CREATE TEMPLATE';
+    delBtn.style.display = 'none';
+    nameInp.value = '';
+    catInp.value = 'Entertainment';
+    minsInp.value = '30';
+    ptsInp.value = '40';
+    actInp.checked = true;
+  }
+  document.getElementById('rec-template-modal-wrap').classList.add('open');
+}
+
+function closeRecTemplateModal(){
+  document.getElementById('rec-template-modal-wrap').classList.remove('open');
+  editingRecTemplateId = null;
+}
+
+function deleteRecTemplate(){
+  if(editingRecTemplateId){
+    const t = S.recreationTemplates.find(x => x.id === editingRecTemplateId);
+    if(t) t.deleted = true;
+    saveState(); renderRecreation(); closeRecTemplateModal();
+    showToast('TEMPLATE DELETED', '');
+  }
+}
+
+function saveRecTemplate(){
+  const name = document.getElementById('rec-tpl-name').value.trim();
+  const cat = document.getElementById('rec-tpl-cat').value;
+  const mins = Math.floor(Number(document.getElementById('rec-tpl-mins').value));
+  const pts = Math.floor(Number(document.getElementById('rec-tpl-pts').value));
+  const active = document.getElementById('rec-tpl-active').checked;
+  
+  if(!name){showToast('NAME REQUIRED', 'red'); return;}
+  if(mins < 1){showToast('MINUTES MUST BE >= 1', 'red'); return;}
+  if(pts < 0){showToast('POINTS CANNOT BE NEGATIVE', 'red'); return;}
+  
+  if(editingRecTemplateId){
+    const t = S.recreationTemplates.find(x => x.id === editingRecTemplateId);
+    if(t){
+      t.name = name; t.category = cat; t.minutes = mins; t.pts = pts; t.active = active;
+    }
+  } else {
+    S.recreationTemplates.push({
+      id: 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      name, category: cat, minutes: mins, pts, active, deleted: false
+    });
+  }
+  saveState(); renderRecreation(); closeRecTemplateModal();
+}
+
+function openCustomRecModal(){
+  document.getElementById('rec-custom-name').value = '';
+  document.getElementById('rec-custom-mins').value = '60';
+  document.getElementById('rec-custom-pts').value = '50';
+  document.getElementById('rec-custom-modal-wrap').classList.add('open');
+}
+
+function closeRecCustomModal(){
+  document.getElementById('rec-custom-modal-wrap').classList.remove('open');
+}
+
+function startRecreation(id){
+  if (S.activeRecreation) return;
+  const t = S.recreationTemplates.find(x => x.id === id);
+  if (!t) return;
+  
+  if (S.points < t.pts) {
+    showToast('NOT ENOUGH POINTS', 'red');
+    return;
+  }
+  
+  const cost = t.pts;
+  S.points -= cost;
+  S.daily.spentToday += cost;
+  
+  S.activeRecreation = {
+    sessionId: 'rec_sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    templateId: t.id,
+    templateName: t.name,
+    scheduledMinutes: t.minutes,
+    scheduledCost: cost,
+    startedAt: Date.now(),
+    custom: false
+  };
+  
+  S.logs.push({
+    id: S.activeRecreation.sessionId,
+    action: 'Started: ' + t.name,
+    pts: -cost,
+    ts: Date.now(),
+    note: '',
+    flag: null,
+    reversible: false,
+    logType: 'rec_start',
+    sessionId: S.activeRecreation.sessionId,
+    templateName: t.name,
+    scheduledMinutes: t.minutes,
+    custom: false
+  });
+  
+  saveState(); renderStats(); renderRecreation(); renderLogs();
+}
+
+function stopRecreation(){
+  const raw = localStorage.getItem('adhd_system_v1');
+  if (raw) {
+    const saved = JSON.parse(raw);
+    if (!saved.activeRecreation || (S.activeRecreation && saved.activeRecreation.sessionId !== S.activeRecreation.sessionId)) {
+      S.activeRecreation = saved.activeRecreation;
+      S.points = saved.points;
+      S.daily = saved.daily;
+      S.logs = saved.logs;
+      renderRecreation(); renderStats(); renderLogs();
+      clearInterval(recTimerInterval);
+      recTimerInterval = null;
+      return;
+    }
+  }
+
+  if (!S.activeRecreation) return;
+  
+  const ar = S.activeRecreation;
+  const elapsedMs = Date.now() - ar.startedAt;
+  const scheduledMs = ar.scheduledMinutes * 60000;
+  const unusedMs = Math.max(0, scheduledMs - elapsedMs);
+  
+  let refundRatio = 0;
+  if (scheduledMs > 0) {
+    refundRatio = unusedMs / scheduledMs;
+  }
+  
+  const refundedPts = Math.floor(ar.scheduledCost * refundRatio);
+  
+  S.points += refundedPts;
+  S.daily.spentToday -= refundedPts; 
+  
+  S.logs.push({
+    id: 'rec_stop_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    action: 'Stopped: ' + (ar.custom ? '⚡ ' : '') + ar.templateName + (refundedPts > 0 ? (' (Refund: +' + refundedPts + ')') : ''),
+    pts: refundedPts,
+    ts: Date.now(),
+    note: '',
+    flag: null,
+    reversible: false,
+    logType: 'rec_stop',
+    sessionId: ar.sessionId,
+    templateName: ar.templateName,
+    elapsedMinutes: Math.floor(elapsedMs / 60000),
+    unusedMinutes: Math.floor(unusedMs / 60000)
+  });
+  
+  S.activeRecreation = null;
+  clearInterval(recTimerInterval);
+  recTimerInterval = null;
+  document.getElementById('rec-active-meta').style.color = 'var(--text3)';
+  document.getElementById('rec-active-meta').style.fontWeight = 'normal';
+  
+  saveState(); renderStats(); renderRecreation(); renderLogs();
+  
+  if (refundedPts > 0) {
+    spawnFloatingPts(refundedPts, true);
+    showToast('SESSION STOPPED · +' + refundedPts + ' PTS REFUNDED', 'cyan');
+  } else {
+    showToast('SESSION COMPLETED', 'cyan');
+  }
+}
+
+function startCustomRec(){
+  if (S.activeRecreation) return;
+  const name = document.getElementById('rec-custom-name').value.trim() || 'Custom Session';
+  const mins = Math.floor(Number(document.getElementById('rec-custom-mins').value));
+  const pts = Math.floor(Number(document.getElementById('rec-custom-pts').value));
+  
+  if(mins < 1) { showToast('MINUTES MUST BE >= 1', 'red'); return; }
+  if(pts < 0) { showToast('POINTS CANNOT BE NEGATIVE', 'red'); return; }
+  
+  if (S.points < pts) {
+    showToast('NOT ENOUGH POINTS', 'red');
+    return;
+  }
+  
+  S.points -= pts;
+  S.daily.spentToday += pts;
+  
+  S.activeRecreation = {
+    sessionId: 'rec_sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    templateId: null,
+    templateName: name,
+    scheduledMinutes: mins,
+    scheduledCost: pts,
+    startedAt: Date.now(),
+    custom: true
+  };
+  
+  S.logs.push({
+    id: S.activeRecreation.sessionId,
+    action: 'Started: ⚡ ' + name,
+    pts: -pts,
+    ts: Date.now(),
+    note: '',
+    flag: null,
+    reversible: false,
+    logType: 'rec_start',
+    sessionId: S.activeRecreation.sessionId,
+    templateName: name,
+    scheduledMinutes: mins,
+    custom: true
+  });
+  
+  closeRecCustomModal();
+  saveState(); renderStats(); renderRecreation(); renderLogs();
+}
 
 
 function renderSpending(){
