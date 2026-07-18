@@ -65,7 +65,7 @@ body{
 
 .app{max-width:480px;margin:0 auto;padding:16px 14px 60px}
 
-/* ── Header ── */
+
 .header{
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:20px;padding:0 2px;
@@ -83,7 +83,7 @@ body{
   box-shadow:0 0 8px rgba(0,255,136,0.15);
 }
 
-/* ── Points Section ── */
+
 .point-section{
   text-align:center;
   background:var(--bg2);
@@ -136,7 +136,7 @@ body{
   100%{opacity:0;top:10%;transform:translateX(-50%) translateY(-30px)}
 }
 
-/* ── Stat Grid ── */
+
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .stat{
   background:var(--bg2);border:1px solid var(--border2);
@@ -148,7 +148,7 @@ body{
 .stat-val.amber{color:var(--amber)}
 .stat-sub{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:4px}
 
-/* ── Card ── */
+
 .card{
   background:var(--bg2);border:1px solid var(--border);
   border-radius:var(--radius);padding:18px 16px;margin-bottom:16px;
@@ -165,14 +165,14 @@ body{
   color:var(--text2);text-transform:uppercase;letter-spacing:0.15em;
 }
 
-/* ── Badges ── */
+
 .badge{font-family:var(--font-hud);font-size:10px;padding:3px 9px;border-radius:3px;border:1px solid;letter-spacing:0.05em;text-transform:uppercase}
 .badge-active{background:var(--neon-dim);color:var(--neon);border-color:var(--neon-b)}
 .badge-done{background:var(--bg4);color:var(--text3);border-color:var(--border2)}
 .badge-locked{background:var(--red-dim);color:var(--red);border-color:var(--red-b)}
 .badge-purple{background:var(--cyan-dim);color:var(--cyan);border-color:var(--cyan-b)}
 
-/* ── Progress Bars ── */
+
 .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .progress-label{font-family:var(--font-hud);font-size:11px;color:var(--text2);min-width:88px;text-transform:uppercase;letter-spacing:0.06em}
 .bar-wrap{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
@@ -183,7 +183,7 @@ body{
 .bar-cyan{background:var(--cyan);box-shadow:0 0 6px rgba(0,204,255,0.5)}
 .bar-end{font-family:var(--font-hud);font-size:10px;color:var(--text3);min-width:56px;text-align:right}
 
-/* ── Flags Row ── */
+
 .flags-row{display:flex;gap:7px;flex-wrap:wrap}
 .flag{
   display:flex;align-items:center;gap:5px;
@@ -196,7 +196,7 @@ body{
 .flag.invalid{background:var(--red-dim);color:var(--red);border-color:var(--red-b)}
 .flag-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
 
-/* ── Unified Action Cards (grid) ── */
+
 .actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
 .action-card{
   position:relative;
@@ -257,21 +257,8 @@ body{
 }
 .action-card.logging{animation:cardPulse 0.45s ease-out}
 
-/* ── Chore Buttons ── */
-.chore-btn{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;background:var(--bg3);
-  border:1px solid var(--border2);border-radius:var(--radius-sm);
-  cursor:pointer;margin-bottom:8px;
-  transition:border-color 0.15s,background 0.12s,box-shadow 0.15s;
-}
-.chore-btn:hover{border-color:var(--neon-b);background:var(--bg4);box-shadow:0 0 10px rgba(0,255,136,0.08)}
-.chore-btn:active{transform:scale(0.98)}
-.chore-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:0.03em}
-.chore-pts{font-family:var(--font-hud);font-size:13px;color:var(--neon);text-shadow:0 0 8px rgba(0,255,136,0.4)}
-.chore-btn:focus-visible{outline:1px solid var(--neon);outline-offset:2px}
-
 /* ── Forms ── */
+
 .add-chore-form{margin-top:10px;border-top:1px solid var(--border);padding-top:12px}
 .form-row{display:flex;gap:8px;align-items:center}
 .form-input{
@@ -295,7 +282,7 @@ body{
 .form-btn:hover{background:var(--neon-dim);box-shadow:0 0 8px rgba(0,255,136,0.2)}
 .form-btn:active{transform:scale(0.97)}
 
-/* ── Logs ── */
+
 .log-item{padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
 .log-item:last-child{border-bottom:none;padding-bottom:0}
 .log-pts{font-family:var(--font-hud);font-size:13px;font-weight:400;min-width:38px}
@@ -322,7 +309,7 @@ body{
   opacity:0.5;cursor:default;
 }
 
-/* ── Toast ── */
+
 .toast-container{position:absolute;top:12px;left:50%;transform:translateX(-50%);pointer-events:none;z-index:20;width:92%}
 .toast{
   background:var(--bg4);border:1px solid var(--border2);
@@ -336,7 +323,7 @@ body{
 .toast.green{border-color:var(--neon-b);color:var(--neon);background:var(--neon-dim)}
 .toast.red{border-color:var(--red-b);color:var(--red);background:var(--red-dim)}
 
-/* ── Modals ── */
+
 .modal-overlay{
   display:none;position:fixed;inset:0;z-index:100;
   background:rgba(0,0,0,0.85);
@@ -389,7 +376,7 @@ body{
 .modal-btn-confirm.red:hover{background:rgba(255,59,59,0.2);box-shadow:var(--red-glow)}
 .modal-btn-confirm.amber{background:var(--amber-dim);border-color:var(--amber-b);color:var(--amber)}
 
-/* ── Dopamine ── */
+
 .dopa-info{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 14px;background:var(--bg3);border:1px solid var(--border2);
@@ -437,7 +424,7 @@ body{
 #dopa-card.locked{border-color:var(--red-b)}
 #dopa-card.locked .dopa-info{border-color:var(--red-b);background:var(--red-dim)}
 
-/* ── Spending ── */
+
 .spend-info{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 14px;background:var(--bg3);border:1px solid var(--border2);
@@ -478,7 +465,7 @@ body{
 #spend-card.capped{border-color:var(--amber-b)}
 #spend-card.capped .spend-info{border-color:var(--amber-b);background:var(--amber-dim)}
 
-/* ── Plans ── */
+
 .plan-item{
   background:var(--bg3);border:1px solid var(--border2);
   border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;
@@ -508,10 +495,10 @@ body{
 .plan-action-btn.del:hover:not(:disabled){background:var(--red-dim)}
 .add-plan-form{margin-top:10px;border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px}
 
-/* ── Save Status ── */
+
 .save-tag{font-family:var(--font-hud);font-size:9px;color:var(--text3);text-align:center;margin-top:24px;letter-spacing:0.1em;text-transform:uppercase}
 
-/* ── Undo Confirm Inline ── */
+
 .log-del-pending{
   color:var(--red)!important;border-color:var(--red-b)!important;
   animation:pulse-red 0.6s ease infinite alternate;
@@ -912,7 +899,7 @@ body{
 </div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────
+
 const DEFAULT_ACTIONS = [
   {id:'deep_work',  name:'Deep Work',   pts:10, desc:'~45 min focused', once:false, flag:null},
   {id:'sneak_study',name:'Sneak Study', pts:3,  desc:'~15 min light',   once:false, flag:null},
@@ -1028,7 +1015,7 @@ async function loadStateAsync(){
 let S=loadState();
 let pendingAction=null;
 
-// ── Action helpers ────────────────────────────────────────────────────
+
 function isDisabled(a){
   if(a.flag==='diet') return S.daily.flags.dietInvalid || S.daily.flags.diet;
   if(a.once && a.flag) return !!S.daily.flags[a.flag];
@@ -1042,7 +1029,7 @@ function getStatusLabel(a){
   return null;
 }
 
-// ── Render Actions (unified grid cards) ──────────────────────────────
+
 function renderActions(){
   const grid=document.getElementById('actions-list');
   grid.innerHTML='';
@@ -1185,7 +1172,7 @@ function renderActions(){
   }
 }
 
-// ── Render Logs ───────────────────────────────────────────────────────
+
 let pendingUndoLogId = null;
 
 function renderLogs(){
@@ -1233,7 +1220,7 @@ function renderLogs(){
   document.getElementById('log-badge').textContent=S.logs.length+' ENTRIES';
 }
 
-// ── Undo Logic ────────────────────────────────────────────────────────
+
 function requestUndoLog(logId, logEntry){
   pendingUndoLogId = logId;
   const actionName = logEntry.action || 'this action';
@@ -1307,7 +1294,7 @@ function executeDeleteLog(logId){
   showToast('ACTION REVERSED · '+l.action,'');
 }
 
-// ── Render Stats ──────────────────────────────────────────────────────
+
 function renderStats(){
   document.getElementById('pts').textContent=S.points;
   document.getElementById('lifetime').textContent=S.lifetimePoints;
@@ -1391,7 +1378,6 @@ function renderStats(){
   document.getElementById('dash-top-goal').textContent = topGoal;
 
   try {
-    let prefs = JSON.parse(localStorage.getItem('adhd_sys_ui_prefs')) || {};
     if(!prefs.unlockedRanks) prefs.unlockedRanks = [];
     if(!prefs.unlockedMilestones) prefs.unlockedMilestones = [];
     let prefsChanged = false;
@@ -1525,7 +1511,7 @@ function render(){
   renderSpending();
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────
+
 function showToast(msg,type){
   const wrap=document.getElementById('toast-wrap');
   const t=document.createElement('div');
@@ -1536,7 +1522,7 @@ function showToast(msg,type){
   setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),220);},2400);
 }
 
-// ── Points Flash + Float ──────────────────────────────────────────────
+
 function flashPoints(){
   const el=document.getElementById('pts');
   el.classList.remove('point-flash');
@@ -1555,7 +1541,7 @@ function spawnFloatingPts(delta, isGain){
   setTimeout(()=>span.remove(), 950);
 }
 
-// ── Action Modal ──────────────────────────────────────────────────────
+
 function triggerAction(action){
   pendingAction=action;
   document.getElementById('note-modal-title').textContent='LOG: '+action.name.toUpperCase();
@@ -1626,7 +1612,7 @@ function commitAction(note){
     id:logTs + '_' + Math.random().toString(36).slice(2,6), action:a.name, actionId:a.id||'',
     pts:a.pts, flag:a.flag||null,
     ts:logTs, note:note||'',
-    reversible:true, logType: a.isChore ? 'chore' : 'action'
+    reversible:true, logType: 'action'
   });
 
   saveState(); render(); spawnFloatingPts(a.pts, true); flashPoints();
@@ -1641,7 +1627,7 @@ document.getElementById('note-modal-wrap').addEventListener('click',e=>{
   if(e.target===document.getElementById('note-modal-wrap')) commitAction('');
 });
 
-// ── Action Management ─────────────────────────────────────────────────
+
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1753,7 +1739,7 @@ document.getElementById('edit-action-pts').addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();saveActionEdit();}
 });
 
-// ── Dopamine ──────────────────────────────────────────────────────────
+
 function renderDopamine(){
   const d=S.daily;
   const rem=Math.max(0,d.dopaLimit-d.dopaUsed);
@@ -1856,7 +1842,7 @@ document.getElementById('nudity-modal-wrap').addEventListener('click',e=>{
     document.getElementById('nudity-modal-wrap').classList.remove('open');
 });
 
-// ── Spending ──────────────────────────────────────────────────────────
+
 function renderSpending(){
   const used=S.daily.spendUsed;
   const cap=S.daily.dailyCap;
@@ -1917,7 +1903,7 @@ function triggerSpend(amt){
   document.getElementById('note-modal-wrap').classList.add('open');
 }
 
-// ── Plans ─────────────────────────────────────────────────────────────
+
 let pendingPlanAction=null;
 
 function planPenalty(amount){
@@ -2215,7 +2201,7 @@ document.getElementById('plan-target').addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();addPlan();}
 });
 
-// ── Manual Override ───────────────────────────────────────────────────
+
 function manualOverride(){
   document.getElementById('override-input').value = S.points;
   document.getElementById('override-modal-wrap').classList.add('open');
@@ -2270,7 +2256,7 @@ document.getElementById('identity-modal-wrap').addEventListener('click', e=>{
   if(e.target===document.getElementById('identity-modal-wrap')) document.getElementById('identity-modal-wrap').classList.remove('open');
 });
 
-// ── Keyboard shortcuts ────────────────────────────────────────────────
+
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closePlanModal();
@@ -2376,7 +2362,7 @@ document.getElementById('weekly-review-dismiss').addEventListener('click', () =>
   document.getElementById('weekly-review-modal').classList.remove('open');
 });
 
-// ── Settings & Themes ──────────────────────────────────────────────────
+
 function openSettingsModal() {
   document.getElementById('settings-modal').classList.add('open');
 }
@@ -2448,7 +2434,7 @@ function resetUI() {
   }
 }
 
-// ── Init ──────────────────────────────────────────────────────────────
+
 window.__adhdState=S;
 window.__adhdSave=()=>{saveState();render();};
 loadStateAsync().then(loaded => {
