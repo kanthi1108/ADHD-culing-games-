@@ -194,32 +194,6 @@ body{
 .flag.invalid{background:var(--red-dim);color:var(--red);border-color:var(--red-b)}
 .flag-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
 
-/* ── Action Buttons ── */
-.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.act-btn{
-  display:flex;flex-direction:column;align-items:flex-start;
-  padding:14px;
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:var(--radius-sm);
-  cursor:pointer;
-  transition:border-color 0.15s,background 0.12s,box-shadow 0.15s,transform 0.08s;
-  text-align:left;min-height:70px;
-}
-.act-btn:hover:not(:disabled){
-  border-color:var(--neon-b);
-  background:var(--bg4);
-  box-shadow:0 0 12px rgba(0,255,136,0.1);
-}
-.act-btn:active:not(:disabled){transform:scale(0.96)}
-.act-btn:disabled{opacity:0.3;cursor:not-allowed}
-.act-btn.done{opacity:0.3;cursor:not-allowed;border-style:dashed}
-.act-btn.invalidated{opacity:0.2;cursor:not-allowed;border-color:var(--red-b)}
-.act-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.04em}
-.act-pts{font-family:var(--font-hud);font-size:13px;color:var(--neon);font-weight:400;text-shadow:0 0 8px rgba(0,255,136,0.4)}
-.act-desc{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em}
-.act-done-label{font-family:var(--font-hud);font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase}
-
 /* ── Unified Action Cards (grid) ── */
 .actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:10px}
 .action-card{
@@ -344,7 +318,6 @@ body{
   font-size:13px;color:var(--text3);flex-shrink:0;
   align-self:flex-start;padding:4px 6px;
   opacity:0.5;cursor:default;
-  title:'permanent — cannot be reversed';
 }
 
 /* ── Toast ── */
@@ -546,6 +519,8 @@ body{
   to{box-shadow:var(--red-glow)}
 }
 </style>
+</head>
+<body>
 
 <div class="app">
   <div class="header">
@@ -557,7 +532,7 @@ body{
     <div class="toast-container" id="toast-wrap"></div>
     <div class="point-label">// CURRENT POINTS</div>
     <div class="point-big" id="pts" onclick="manualOverride()" style="cursor:pointer" title="Click to override">0</div>
-    <div class="point-sub">LIFETIME &nbsp;<span id="lifetime">0</span> PTS EARNED</div>
+    <div class="point-sub"><span id="identity-rank" style="color:var(--neon);margin-right:8px"></span>LIFETIME &nbsp;<span id="lifetime">0</span> PTS EARNED</div>
   </div>
 
   <div class="stat-grid">
@@ -593,12 +568,17 @@ body{
     </div>
   </div>
 
+  <div class="card" id="next-action-card" style="display:none">
+    <div class="card-header"><span class="card-title">// NEXT ACTION</span></div>
+    <div id="next-action-container"></div>
+  </div>
+
   <div class="card">
     <div class="card-header">
       <span class="card-title">// ACTION TERMINAL</span>
       <span class="badge badge-purple" id="actions-badge">READY</span>
     </div>
-    <div class="actions-grid" id="actions-list"></div>
+    <div id="actions-list"></div>
     <div class="add-chore-form">
       <div class="form-row">
         <input class="form-input" id="action-name" placeholder="action name" maxlength="40" />
@@ -650,6 +630,11 @@ body{
         <span class="dopa-btn-cost">−20 PTS · LOCK</span>
       </button>
     </div>
+  </div>
+
+  <div class="card" id="pinned-goal-card" style="display:none; cursor:pointer;" onclick="document.getElementById('plans-list').scrollIntoView({behavior:'smooth'})">
+    <div class="card-header"><span class="card-title">// PINNED GOAL</span></div>
+    <div id="pinned-goal-container"></div>
   </div>
 
   <div class="card" id="spend-card">
@@ -803,6 +788,35 @@ body{
   </div>
 </div>
 
+<div id="override-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar amber"></div>
+    <div class="modal-inner">
+      <div class="modal-title">ADMIN OVERRIDE</div>
+      <div class="modal-sub">Enter exact points balance to set:</div>
+      <input class="modal-input" id="override-input" type="number" placeholder="points" style="width:100%" />
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" id="override-cancel">CANCEL</button>
+        <button class="modal-btn-confirm amber" id="override-confirm">CONFIRM</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="identity-modal-wrap" class="modal-overlay">
+  <div class="modal-box" style="max-width:300px;text-align:center">
+    <div class="modal-top-bar"></div>
+    <div class="modal-inner">
+      <div class="modal-title" id="identity-modal-title">NEW RANK</div>
+      <div class="modal-sub" id="identity-modal-sub" style="font-size:24px;color:var(--neon);font-family:var(--font-hud);margin:12px 0">CADET</div>
+      <div class="modal-sub" id="identity-modal-desc" style="margin-bottom:0">IDENTITY UPDATED</div>
+      <div class="modal-btns" style="margin-top:20px">
+        <button class="modal-btn-confirm" id="identity-dismiss" style="width:100%">ACKNOWLEDGE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="plan-modal-wrap" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-top-bar amber"></div>
@@ -848,19 +862,19 @@ const DEFAULT = {
 function loadState(){
   try {
     const raw = localStorage.getItem('adhd_system_v1');
-    if(!raw) return JSON.parse(JSON.stringify(DEFAULT));
+    if(!raw) return structuredClone(DEFAULT);
     const saved = JSON.parse(raw);
     const today = new Date().toDateString();
     if(!saved.daily || saved.daily.date !== today){
       if(saved.nextDayPenalty){
         saved.points = Math.max(0, (saved.points||0) - 50);
       }
-      saved.daily = {...JSON.parse(JSON.stringify(DEFAULT.daily)), date: today};
+      saved.daily = {...structuredClone(DEFAULT.daily), date: today};
       saved.nextDayPenalty = false;
     }
     // Migrate: if no S.actions yet, seed from DEFAULT_ACTIONS + old chores
     if(!saved.actions || !saved.actions.length){
-      saved.actions = JSON.parse(JSON.stringify(DEFAULT_ACTIONS));
+      saved.actions = structuredClone(DEFAULT_ACTIONS);
       if(saved.chores && saved.chores.length){
         saved.chores.forEach(c=>{
           saved.actions.push({
@@ -871,12 +885,12 @@ function loadState(){
       }
     }
     return {
-      ...JSON.parse(JSON.stringify(DEFAULT)),
+      ...structuredClone(DEFAULT),
       ...saved,
-      daily: {...JSON.parse(JSON.stringify(DEFAULT.daily)), ...saved.daily}
+      daily: {...structuredClone(DEFAULT.daily), ...saved.daily}
     };
   } catch(e) {
-    return JSON.parse(JSON.stringify(DEFAULT));
+    return structuredClone(DEFAULT);
   }
 }
 
@@ -954,16 +968,32 @@ function getStatusLabel(a){
 function renderActions(){
   const grid=document.getElementById('actions-list');
   grid.innerHTML='';
+  
+  const naCard = document.getElementById('next-action-card');
+  const naContainer = document.getElementById('next-action-container');
+
   if(!S.actions.length){
     grid.style.display='block';
-    grid.innerHTML='<div class="log-empty">NO ACTIONS YET — ADD ONE BELOW</div>';
+    grid.innerHTML='<div class="log-empty" style="text-transform:none">NO ACTIONS DEFINED - Create actions to begin earning points.</div>';
     document.getElementById('actions-badge').textContent='0 ACTIONS';
     document.getElementById('actions-badge').className='badge badge-done';
+    naCard.style.display='none';
     return;
   }
   grid.style.display='';
   let doneCount=0,onceTotal=0;
-  S.actions.forEach((a,i)=>{
+  
+  const priorityNames = ['deep work', 'workout', 'diet', 'sleep', 'wake'];
+  const priorityActions = [];
+  const otherActions = [];
+
+  S.actions.forEach((a,i) => {
+    if(priorityNames.includes(a.name.toLowerCase())) priorityActions.push({a,i});
+    else otherActions.push({a,i});
+  });
+
+  function createCard(item){
+    const {a,i} = item;
     const disabled=isDisabled(a);
     const label=getStatusLabel(a);
     if(a.once) onceTotal++;
@@ -973,7 +1003,6 @@ function renderActions(){
     const invalided=a.flag==='diet'&&S.daily.flags.dietInvalid;
     card.className='action-card'+(disabled?(invalided?' invalidated':' done'):'');
 
-    // edit trigger (pencil in corner)
     const editTrigger=document.createElement('button');
     editTrigger.className='action-edit-trigger';
     editTrigger.innerHTML='✎';
@@ -984,8 +1013,10 @@ function renderActions(){
       <span class="action-card-name">${escHtml(a.name)}</span>
       <span class="action-card-pts">+${a.pts} PTS</span>
       ${a.desc?`<span class="action-card-desc">${escHtml(a.desc)}</span>`:''}
-      ${a.once?'<span class="action-card-daily">DAILY</span>':''}
-      ${label?`<span class="action-card-status">${label}</span>`:''}`;
+      <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;width:100%">
+        ${a.once?'<span class="action-card-daily" style="position:static;margin-top:8px">DAILY</span>':'<span></span>'}
+        ${label?`<span class="action-card-status" style="position:static;margin-top:8px;margin-left:auto">${label}</span>`:''}
+      </div>`;
     card.appendChild(editTrigger);
 
     if(!disabled){
@@ -995,8 +1026,60 @@ function renderActions(){
         triggerAction(a);
       });
     }
-    grid.appendChild(card);
-  });
+    return card;
+  }
+
+  if(priorityActions.length > 0){
+    const pTitle = document.createElement('div');
+    pTitle.className = 'point-label';
+    pTitle.style.marginBottom = '8px';
+    pTitle.textContent = 'Priority Actions';
+    grid.appendChild(pTitle);
+
+    const pGrid = document.createElement('div');
+    pGrid.className = 'actions-grid';
+    priorityActions.forEach(item => pGrid.appendChild(createCard(item)));
+    grid.appendChild(pGrid);
+  }
+
+  if(otherActions.length > 0){
+    const oTitle = document.createElement('div');
+    oTitle.className = 'point-label';
+    oTitle.style.marginTop = '16px';
+    oTitle.style.marginBottom = '8px';
+    oTitle.style.display = 'flex';
+    oTitle.style.justifyContent = 'space-between';
+    oTitle.style.alignItems = 'center';
+    oTitle.style.cursor = 'pointer';
+
+    const oText = document.createElement('span');
+    oText.textContent = 'Other Actions';
+    oTitle.appendChild(oText);
+
+    const toggleBtn = document.createElement('span');
+    toggleBtn.style.color = 'var(--text2)';
+    toggleBtn.style.fontSize = '12px';
+    oTitle.appendChild(toggleBtn);
+
+    grid.appendChild(oTitle);
+
+    let isExpanded = sessionStorage.getItem('adhd_sys_other_actions_expanded') === 'true';
+    
+    const oGrid = document.createElement('div');
+    oGrid.className = 'actions-grid';
+    oGrid.style.display = isExpanded ? 'grid' : 'none';
+    otherActions.forEach(item => oGrid.appendChild(createCard(item)));
+    grid.appendChild(oGrid);
+
+    toggleBtn.textContent = isExpanded ? 'SHOW LESS' : 'SHOW MORE';
+    oTitle.addEventListener('click', () => {
+      isExpanded = !isExpanded;
+      sessionStorage.setItem('adhd_sys_other_actions_expanded', isExpanded);
+      oGrid.style.display = isExpanded ? 'grid' : 'none';
+      toggleBtn.textContent = isExpanded ? 'SHOW LESS' : 'SHOW MORE';
+    });
+  }
+
   const badge=document.getElementById('actions-badge');
   if(onceTotal>0){
     badge.textContent=doneCount+'/'+onceTotal+' DAILY DONE';
@@ -1005,6 +1088,52 @@ function renderActions(){
     badge.textContent='READY';
     badge.className='badge badge-active';
   }
+
+  let best = null;
+  for(const name of priorityNames){
+    const a = S.actions.find(x => x.name.toLowerCase() === name);
+    if(a && !isDisabled(a)){ best = a; break; }
+  }
+  
+  if(!best){
+    const unfinished = S.actions.filter(a => !isDisabled(a));
+    if(unfinished.length > 0){
+      best = unfinished.reduce((prev, curr) => (prev.pts > curr.pts) ? prev : curr);
+    }
+  }
+  
+  if(best){
+    naCard.style.display = 'block';
+    naContainer.innerHTML = '';
+    
+    const card=document.createElement('div');
+    card.className='action-card';
+    card.style.borderColor = 'var(--neon)';
+    card.style.borderWidth = '1px';
+    card.style.background = 'var(--bg3)';
+    
+    card.innerHTML=`
+      <span class="action-card-name" style="color:var(--neon)">${escHtml(best.name)}</span>
+      <span class="action-card-pts">+${best.pts} PTS</span>
+      ${best.desc?`<span class="action-card-desc">${escHtml(best.desc)}</span>`:''}
+      <div style="margin-top:12px;width:100%">
+        <button style="width:100%;padding:10px;background:var(--neon-dim);border:1px solid var(--neon);color:var(--neon);font-family:var(--font-hud);border-radius:var(--radius-sm);cursor:pointer;font-weight:bold;letter-spacing:0.1em;transition:background 0.2s">START ACTION</button>
+      </div>`;
+      
+    const btn = card.querySelector('button');
+    btn.addEventListener('mouseenter', () => btn.style.background = 'var(--neon-b)');
+    btn.addEventListener('mouseleave', () => btn.style.background = 'var(--neon-dim)');
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      card.classList.add('logging');
+      card.addEventListener('animationend',()=>card.classList.remove('logging'),{once:true});
+      triggerAction(best);
+    });
+    
+    naContainer.appendChild(card);
+  } else {
+    naCard.style.display = 'none';
+  }
 }
 
 // ── Render Logs ───────────────────────────────────────────────────────
@@ -1012,7 +1141,7 @@ let pendingUndoLogId = null;
 
 function renderLogs(){
   const list=document.getElementById('log-list');
-  if(!S.logs.length){list.innerHTML='<div class="log-empty">NO ACTIONS LOGGED YET</div>';return;}
+  if(!S.logs.length){list.innerHTML='<div class="log-empty" style="text-transform:none">NO ACTIONS LOGGED - Complete a task to generate a log entry.</div>';return;}
   const recent=[...S.logs].reverse().slice(0,20);
   list.innerHTML='';
   const todayStr=new Date().toDateString();
@@ -1134,6 +1263,37 @@ function renderStats(){
   document.getElementById('pts').textContent=S.points;
   document.getElementById('lifetime').textContent=S.lifetimePoints;
 
+  const ranks = [
+    { t: 15000, n: 'LEGEND' }, { t: 8000, n: 'COMMANDER' }, { t: 4000, n: 'ELITE' },
+    { t: 1500, n: 'OPERATOR' }, { t: 500, n: 'CADET' }, { t: 0, n: 'CIVILIAN' }
+  ];
+  const currentRank = ranks.find(r => S.lifetimePoints >= r.t).n;
+  document.getElementById('identity-rank').textContent = `[ ${currentRank} ]`;
+
+  try {
+    let prefs = JSON.parse(localStorage.getItem('adhd_sys_ui_prefs')) || {};
+    if(!prefs.unlockedRanks) prefs.unlockedRanks = [];
+    if(!prefs.unlockedMilestones) prefs.unlockedMilestones = [];
+    let prefsChanged = false;
+
+    if(!prefs.unlockedRanks.includes(currentRank)){
+      prefs.unlockedRanks.push(currentRank);
+      prefsChanged = true;
+      if(prefs.unlockedRanks.length > 1){
+        showIdentityPopup('NEW RANK', currentRank, 'IDENTITY UPDATED');
+      }
+    }
+
+    const milestones = [10000, 5000, 1000, 500, 100];
+    const reachedMilestone = milestones.find(m => S.lifetimePoints >= m);
+    if(reachedMilestone && !prefs.unlockedMilestones.includes(reachedMilestone)){
+      prefs.unlockedMilestones.push(reachedMilestone);
+      prefsChanged = true;
+      showIdentityPopup('MILESTONE REACHED', `${reachedMilestone} PTS`, 'KEEP PUSHING');
+    }
+    if(prefsChanged) localStorage.setItem('adhd_sys_ui_prefs', JSON.stringify(prefs));
+  } catch(e) {}
+
   document.getElementById('spent-today').textContent=S.daily.spendUsed; 
   document.getElementById('daily-cap').textContent=S.daily.dailyCap;
   document.getElementById('earned-today').textContent=S.daily.earnedToday;
@@ -1218,9 +1378,10 @@ function commitAction(note){
     S.points = S.points - 10;
     S.daily.spentToday+=10;
     S.nextDayPenalty=true;
+    const logTs = Date.now();
     S.logs.push({
-      id:Date.now(), action:'Impulse Violation', pts:-10,
-      ts:Date.now(), note:note||'', flag:null,
+      id:logTs + '_' + Math.random().toString(36).slice(2,6), action:'Impulse Violation', pts:-10,
+      ts:logTs, note:note||'', flag:null,
       reversible:true, logType:'impulse'
     });
     saveState();renderStats();renderDopamine();renderLogs();
@@ -1236,10 +1397,10 @@ function commitAction(note){
     S.daily.spendUsed += a.amt;
     S.daily.spentToday += a.amt;
 
-    const logId = Date.now();
+    const logTs = Date.now();
     S.logs.push({
-      id:logId, action:'Spend ₹'+a.amt, pts:-a.amt,
-      ts:logId, note:note||'', flag:null,
+      id:logTs + '_' + Math.random().toString(36).slice(2,6), action:'Spend ₹'+a.amt, pts:-a.amt,
+      ts:logTs, note:note||'', flag:null,
       reversible:true, logType:'spend', spendAmt:a.amt
     });
 
@@ -1262,10 +1423,11 @@ function commitAction(note){
     if(!S.daily.loggedOnce.includes(a.id)) S.daily.loggedOnce.push(a.id);
   }
 
+  const logTs = Date.now();
   S.logs.push({
-    id:Date.now(), action:a.name, actionId:a.id||'',
+    id:logTs + '_' + Math.random().toString(36).slice(2,6), action:a.name, actionId:a.id||'',
     pts:a.pts, flag:a.flag||null,
-    ts:Date.now(), note:note||'',
+    ts:logTs, note:note||'',
     reversible:true, logType: a.isChore ? 'chore' : 'action'
   });
 
@@ -1304,7 +1466,7 @@ function addAction(){
   }
 
   S.actions.push({
-    id:'action_'+Date.now(),
+    id:'action_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
     name, pts, desc, once, flag:null
   });
   nameEl.value='';ptsEl.value='';descEl.value='';onceEl.checked=false;
@@ -1437,10 +1599,10 @@ function useDopamine(){
   d.dopaUsed+=10;
   if(d.dopaUsed>=d.dopaLimit) S.nextDayPenalty=true;
 
-  const logId=Date.now();
+  const logTs=Date.now();
   S.logs.push({
-    id:logId, action:'Dopamine · 10 min', pts:-10,
-    ts:logId, note:'', flag:null,
+    id:logTs + '_' + Math.random().toString(36).slice(2,6), action:'Dopamine · 10 min', pts:-10,
+    ts:logTs, note:'', flag:null,
     reversible:true, logType:'dopa', dopaAmt:10
   });
 
@@ -1473,10 +1635,10 @@ function executeNudity(){
   d.dopaLocked=true;
   S.nextDayPenalty=true;
 
-  const logId=Date.now();
+  const logTs=Date.now();
   S.logs.push({
-    id:logId, action:'Nudity Violation', pts:-20,
-    ts:logId, note:'', flag:null,
+    id:logTs + '_' + Math.random().toString(36).slice(2,6), action:'Nudity Violation', pts:-20,
+    ts:logTs, note:'', flag:null,
     reversible:false,  
     logType:'nudity'
   });
@@ -1568,10 +1730,14 @@ function renderPlans(){
   const list=document.getElementById('plans-list');
   list.innerHTML='';
 
+  const pgCard = document.getElementById('pinned-goal-card');
+  const pgContainer = document.getElementById('pinned-goal-container');
+
   if(!S.plans.length){
-    list.innerHTML='<div class="log-empty">NO PLANS YET — ADD A LONG-TERM GOAL</div>';
+    list.innerHTML='<div class="log-empty" style="text-transform:none">NO ACTIVE OBJECTIVES - Create a long-term target to begin saving.</div>';
     const badge=document.getElementById('plans-badge');
     badge.textContent='0 ACTIVE';badge.className='badge badge-done';
+    pgCard.style.display='none';
     return;
   }
 
@@ -1581,10 +1747,13 @@ function renderPlans(){
   badge.textContent=activeCount+' ACTIVE';
   badge.className='badge '+(activeCount===0?'badge-active':'badge-purple');
 
+  let prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem('adhd_sys_ui_prefs')) || {}; } catch(e){}
+
   S.plans.forEach((p,i)=>{
     const pct=Math.min(100,Math.round((p.storedPoints/p.targetPoints)*100));
     const complete=p.completed;
-    const barCls=complete?'bar-neon':pct>=80?'bar-neon':pct>=40?'bar-cyan':'bar-cyan';
+    const barCls=complete?'bar-neon':pct>=80?'bar-neon':'bar-cyan';
 
     let dateLine='';
     if(p.targetDate){
@@ -1598,6 +1767,8 @@ function renderPlans(){
 
     const item=document.createElement('div');
     item.className='plan-item'+(complete?' complete':'');
+    const isPinned = prefs.pinnedPlanName === p.name;
+    
     item.innerHTML=`
       <div class="plan-header">
         <span class="plan-name">${escHtml(p.name)}</span>
@@ -1611,14 +1782,69 @@ function renderPlans(){
         <button class="plan-action-btn dep" ${complete?'disabled':''}>DEPOSIT</button>
         <button class="plan-action-btn wdr" ${p.storedPoints===0?'disabled':''}>WITHDRAW</button>
         <button class="plan-action-btn del">DELETE</button>
+        <button class="plan-action-btn pin" style="color:${isPinned?'var(--neon)':'inherit'}">${isPinned?'UNPIN':'PIN'}</button>
       </div>`;
 
-    const [depBtn,wdrBtn,delBtn]=item.querySelectorAll('.plan-action-btn');
+    const [depBtn,wdrBtn,delBtn,pinBtn]=item.querySelectorAll('.plan-action-btn');
     if(!complete) depBtn.addEventListener('click',()=>openPlanModal('deposit',i));
     if(p.storedPoints>0) wdrBtn.addEventListener('click',()=>openPlanModal('withdraw',i));
     delBtn.addEventListener('click',()=>deletePlan(i));
+    pinBtn.addEventListener('click', () => {
+      if(isPinned) delete prefs.pinnedPlanName;
+      else prefs.pinnedPlanName = p.name;
+      localStorage.setItem('adhd_sys_ui_prefs', JSON.stringify(prefs));
+      renderPlans();
+    });
     list.appendChild(item);
   });
+
+  let pinned = S.plans.find(p => p.name === prefs.pinnedPlanName);
+  if(!pinned && S.plans.length > 0){
+    const incomplete = S.plans.filter(p => !p.completed);
+    if(incomplete.length > 0){
+      const withDate = incomplete.filter(p => p.targetDate).sort((a,b) => new Date(a.targetDate) - new Date(b.targetDate));
+      if(withDate.length > 0) {
+        pinned = withDate[0];
+      } else {
+        pinned = incomplete.sort((a,b) => (b.storedPoints/b.targetPoints) - (a.storedPoints/a.targetPoints))[0];
+      }
+    } else {
+      pinned = S.plans[0];
+    }
+  }
+
+  if(pinned){
+    pgCard.style.display='block';
+    pgContainer.innerHTML='';
+    const pct=Math.min(100,Math.round((pinned.storedPoints/pinned.targetPoints)*100));
+    const complete=pinned.completed;
+    const barCls=complete?'bar-neon':pct>=80?'bar-neon':'bar-cyan';
+    
+    let dateLine='';
+    if(pinned.targetDate){
+      const d=new Date(pinned.targetDate+'T00:00:00');
+      const today=new Date();today.setHours(0,0,0,0);
+      const diff=Math.round((d-today)/86400000);
+      const label=diff<0?'OVERDUE BY '+Math.abs(diff)+'D':diff===0?'DUE TODAY':diff===1?'DUE TOMORROW':'DUE IN '+diff+'D';
+      const col=diff<0?'var(--red)':diff<=3?'var(--amber)':'var(--text3)';
+      dateLine=` · <span style="color:${col}">${label}</span>`;
+    }
+
+    pgContainer.innerHTML=`
+      <div class="plan-item" style="margin-bottom:0;border:1px solid var(--neon);background:var(--bg3)">
+        <div class="plan-header">
+          <span class="plan-name" style="color:var(--neon)">${escHtml(pinned.name)}</span>
+          <span class="badge ${complete?'badge-active':'badge-purple'}">${complete?'✓ COMPLETE':pct+'%'}</span>
+        </div>
+        <div class="plan-meta">${pinned.storedPoints} / ${pinned.targetPoints} PTS STORED${dateLine}</div>
+        <div class="plan-bar-row" style="margin-bottom:0">
+          <div class="bar-wrap"><div class="bar ${barCls}" style="width:${pct}%;transition:width 0.5s ease"></div></div>
+        </div>
+      </div>
+    `;
+  } else {
+    pgCard.style.display='none';
+  }
 }
 
 function openPlanModal(type,i){
@@ -1742,25 +1968,58 @@ document.getElementById('plan-target').addEventListener('keydown',e=>{
 
 // ── Manual Override ───────────────────────────────────────────────────
 function manualOverride(){
-  const raw = prompt("ADMIN OVERRIDE\nEnter exact points balance to set:", S.points);
+  document.getElementById('override-input').value = S.points;
+  document.getElementById('override-modal-wrap').classList.add('open');
+  setTimeout(()=>document.getElementById('override-input').focus(), 40);
+}
+
+function closeOverrideModal(){
+  document.getElementById('override-modal-wrap').classList.remove('open');
+}
+
+document.getElementById('override-cancel').addEventListener('click', closeOverrideModal);
+document.getElementById('override-modal-wrap').addEventListener('click', e=>{
+  if(e.target===document.getElementById('override-modal-wrap')) closeOverrideModal();
+});
+document.getElementById('override-input').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); document.getElementById('override-confirm').click(); }
+});
+
+document.getElementById('override-confirm').addEventListener('click', ()=>{
+  const raw = document.getElementById('override-input').value;
   if(raw === null || raw.trim() === '') return;
   const val = parseInt(raw);
   if(!isNaN(val)){
     const diff = val - S.points;
     S.points = val;
     
+    const logTs = Date.now();
     S.logs.push({
-      id:Date.now(), action:'Manual Purse Override', pts:diff,
-      ts:Date.now(), note:'Admin adjustment', flag:null,
+      id:logTs + '_' + Math.random().toString(36).slice(2,6), action:'Manual Purse Override', pts:diff,
+      ts:logTs, note:'Admin adjustment', flag:null,
       reversible:false, logType:'admin'
     });
     
     saveState(); render(); flashPoints();
     showToast('PURSE OVERRIDDEN TO ' + val, 'amber');
+    closeOverrideModal();
   } else {
     showToast('INVALID NUMBER', 'red');
   }
+});
+
+function showIdentityPopup(title, mainText, desc){
+  document.getElementById('identity-modal-title').textContent = title;
+  document.getElementById('identity-modal-sub').textContent = mainText;
+  document.getElementById('identity-modal-desc').textContent = desc;
+  document.getElementById('identity-modal-wrap').classList.add('open');
 }
+document.getElementById('identity-dismiss').addEventListener('click', ()=>{
+  document.getElementById('identity-modal-wrap').classList.remove('open');
+});
+document.getElementById('identity-modal-wrap').addEventListener('click', e=>{
+  if(e.target===document.getElementById('identity-modal-wrap')) document.getElementById('identity-modal-wrap').classList.remove('open');
+});
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
@@ -1770,6 +2029,10 @@ document.addEventListener('keydown',e=>{
     closeEditActionModal();
     document.getElementById('note-modal-wrap').classList.remove('open');
     document.getElementById('nudity-modal-wrap').classList.remove('open');
+    const overrideModal = document.getElementById('override-modal-wrap');
+    if(overrideModal) overrideModal.classList.remove('open');
+    const identityModal = document.getElementById('identity-modal-wrap');
+    if(identityModal) identityModal.classList.remove('open');
   }
   if(e.key==='Enter'&&pendingPlanAction&&document.activeElement===document.getElementById('plan-modal-amount')){
     e.preventDefault();document.getElementById('plan-modal-confirm').click();
@@ -1784,4 +2047,5 @@ loadStateAsync().then(loaded => {
   render();
 });
 </script>
+</body>
 </html>
