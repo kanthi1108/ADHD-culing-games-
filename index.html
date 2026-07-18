@@ -859,11 +859,17 @@ body{
       <div style="margin-bottom:12px">
         <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">CATEGORY</label>
         <select class="modal-input" id="rec-tpl-cat" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px">
-          <option>Passive</option>
-          <option>Social</option>
           <option>Entertainment</option>
-          <option>Infinite Feed</option>
-          <option>High Stimulation</option>
+          <option>Gaming</option>
+          <option>Social Media</option>
+          <option>Movies / TV</option>
+          <option>Music</option>
+          <option>Reading</option>
+          <option>Shopping</option>
+          <option>Food</option>
+          <option>Browsing</option>
+          <option>Learning</option>
+          <option>Other</option>
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
@@ -900,6 +906,22 @@ body{
         <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">NAME</label>
         <input type="text" class="modal-input" id="rec-custom-name" placeholder="Movie, Hangout..." maxlength="30" style="width:100%" />
       </div>
+      <div style="margin-bottom:12px">
+        <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">CATEGORY</label>
+        <select class="modal-input" id="rec-custom-cat" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px">
+          <option>Entertainment</option>
+          <option>Gaming</option>
+          <option>Social Media</option>
+          <option>Movies / TV</option>
+          <option>Music</option>
+          <option>Reading</option>
+          <option>Shopping</option>
+          <option>Food</option>
+          <option>Browsing</option>
+          <option>Learning</option>
+          <option>Other</option>
+        </select>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
         <div>
           <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">MINUTES</label>
@@ -933,6 +955,8 @@ body{
       </div>
     </div>
   </div>
+</div>
+
 <div id="settings-modal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-top-bar" style="background:var(--text3)"></div>
@@ -1923,8 +1947,8 @@ function renderRecreation(){
 }
 
 let editingRecTemplateId = null;
-function openTemplateModal(id = null){
-  editingRecTemplateId = id;
+function openTemplateModal(templateId = null){
+  editingRecTemplateId = (typeof templateId === 'string') ? templateId : null;
   const title = document.getElementById('rec-template-modal-title');
   const nameInp = document.getElementById('rec-tpl-name');
   const catInp = document.getElementById('rec-tpl-cat');
@@ -1933,10 +1957,10 @@ function openTemplateModal(id = null){
   const actInp = document.getElementById('rec-tpl-active');
   const delBtn = document.getElementById('rec-tpl-delete-btn');
   
-  if(id){
+  if(editingRecTemplateId){
     title.textContent = 'EDIT TEMPLATE';
     delBtn.style.display = 'block';
-    const t = S.recreationTemplates.find(x => x.id === id);
+    const t = S.recreationTemplates.find(x => x.id === editingRecTemplateId);
     if(t) {
       nameInp.value = t.name;
       catInp.value = t.category;
@@ -1960,6 +1984,9 @@ function closeRecTemplateModal(){
   document.getElementById('rec-template-modal-wrap').classList.remove('open');
   editingRecTemplateId = null;
 }
+document.getElementById('rec-template-modal-wrap').addEventListener('click', e => {
+  if (e.target === document.getElementById('rec-template-modal-wrap')) closeRecTemplateModal();
+});
 
 function deleteRecTemplate(){
   if(editingRecTemplateId){
@@ -1997,6 +2024,7 @@ function saveRecTemplate(){
 
 function openCustomRecModal(){
   document.getElementById('rec-custom-name').value = '';
+  document.getElementById('rec-custom-cat').value = 'Entertainment';
   document.getElementById('rec-custom-mins').value = '60';
   document.getElementById('rec-custom-pts').value = '50';
   document.getElementById('rec-custom-modal-wrap').classList.add('open');
@@ -2005,6 +2033,9 @@ function openCustomRecModal(){
 function closeRecCustomModal(){
   document.getElementById('rec-custom-modal-wrap').classList.remove('open');
 }
+document.getElementById('rec-custom-modal-wrap').addEventListener('click', e => {
+  if (e.target === document.getElementById('rec-custom-modal-wrap')) closeRecCustomModal();
+});
 
 function startRecreation(id){
   if (S.activeRecreation) return;
@@ -2041,7 +2072,9 @@ function startRecreation(id){
     logType: 'rec_start',
     sessionId: S.activeRecreation.sessionId,
     templateName: t.name,
+    category: t.category,
     scheduledMinutes: t.minutes,
+    scheduledCost: cost,
     custom: false
   });
   
@@ -2092,8 +2125,10 @@ function stopRecreation(){
     logType: 'rec_stop',
     sessionId: ar.sessionId,
     templateName: ar.templateName,
+    category: ar.category,
     elapsedMinutes: Math.floor(elapsedMs / 60000),
-    unusedMinutes: Math.floor(unusedMs / 60000)
+    unusedMinutes: Math.floor(unusedMs / 60000),
+    refundedPts: refundedPts
   });
   
   S.activeRecreation = null;
@@ -2115,6 +2150,7 @@ function stopRecreation(){
 function startCustomRec(){
   if (S.activeRecreation) return;
   const name = document.getElementById('rec-custom-name').value.trim() || 'Custom Session';
+  const cat = document.getElementById('rec-custom-cat').value;
   const mins = Math.floor(Number(document.getElementById('rec-custom-mins').value));
   const pts = Math.floor(Number(document.getElementById('rec-custom-pts').value));
   
@@ -2133,6 +2169,7 @@ function startCustomRec(){
     sessionId: 'rec_sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
     templateId: null,
     templateName: name,
+    category: cat,
     scheduledMinutes: mins,
     scheduledCost: pts,
     startedAt: Date.now(),
@@ -2150,7 +2187,9 @@ function startCustomRec(){
     logType: 'rec_start',
     sessionId: S.activeRecreation.sessionId,
     templateName: name,
+    category: cat,
     scheduledMinutes: mins,
+    scheduledCost: pts,
     custom: true
   });
   
