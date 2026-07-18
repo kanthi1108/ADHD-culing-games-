@@ -640,9 +640,8 @@ body{
       <button class="plan-action-btn wdr" style="width:100%;padding:12px;font-size:14px" onclick="stopRecreation()">STOP & REFUND</button>
     </div>
 
-    <div id="rec-templates-view">
-      <div id="rec-templates-list" style="display:flex;flex-direction:column">
-      </div>
+    <div id="rec-idle-view" style="display:none;text-align:center;padding:20px 0 10px">
+      <button class="modal-btn-confirm cyan" style="width:100%;font-size:14px;padding:12px;letter-spacing:0.1em" onclick="openRecPickerModal()">START RECREATION</button>
     </div>
   </div>
 
@@ -889,6 +888,22 @@ body{
       <div class="modal-btns">
         <button class="modal-btn-cancel" onclick="closeRecTemplateModal()">CANCEL</button>
         <button class="modal-btn-confirm cyan" onclick="saveRecTemplate()">SAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="rec-library-modal-wrap" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-top-bar cyan"></div>
+    <div class="modal-inner">
+      <div class="modal-title" style="color:var(--text);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <span>📋 PLANNED SESSIONS</span>
+        <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3)" onclick="openTemplateModal()" title="New Template">+</button>
+      </div>
+      <div id="rec-templates-list" style="display:flex;flex-direction:column;max-height:60vh;overflow-y:auto;padding-right:4px"></div>
+      <div class="modal-btns" style="margin-top:15px">
+        <button class="modal-btn-cancel" onclick="closeRecLibraryModal()" style="width:100%">CLOSE</button>
       </div>
     </div>
   </div>
@@ -1997,7 +2012,7 @@ function tickRecTimer() {
 function renderRecreation(){
   if (S.activeRecreation) {
     document.getElementById('rec-active-view').style.display = 'block';
-    document.getElementById('rec-templates-view').style.display = 'none';
+    document.getElementById('rec-idle-view').style.display = 'none';
     document.getElementById('rec-active-name').textContent = S.activeRecreation.custom ? '⚡ ' + (S.activeRecreation.templateName || 'CUSTOM') : (S.activeRecreation.templateName || 'SESSION');
     
     if (!recTimerInterval) {
@@ -2006,13 +2021,18 @@ function renderRecreation(){
     tickRecTimer();
   } else {
     document.getElementById('rec-active-view').style.display = 'none';
-    document.getElementById('rec-templates-view').style.display = 'block';
+    document.getElementById('rec-idle-view').style.display = 'block';
     const list = document.getElementById('rec-templates-list');
     list.innerHTML = '';
     
     const visibleTpls = S.recreationTemplates.filter(t => !t.deleted);
     if(visibleTpls.length === 0){
-      list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;margin:20px 0;letter-spacing:0.05em">NO RECREATION TEMPLATES YET.</div>';
+      list.innerHTML = `
+        <div style="text-align:center;padding:20px 0">
+          <div style="color:var(--text3);font-size:12px;margin-bottom:12px;letter-spacing:0.05em">No Planned Sessions yet.</div>
+          <button class="plan-action-btn" onclick="openTemplateModal()">➕ Create Template</button>
+        </div>
+      `;
     } else {
       visibleTpls.forEach(t => {
         if(!t.active) return;
@@ -2168,8 +2188,16 @@ document.getElementById('rec-picker-modal-wrap').addEventListener('click', e => 
 
 function selectPlannedSession() {
   closeRecPickerModal();
-  document.getElementById('recreation-card').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('rec-library-modal-wrap').classList.add('open');
 }
+
+function closeRecLibraryModal() {
+  document.getElementById('rec-library-modal-wrap').classList.remove('open');
+}
+
+document.getElementById('rec-library-modal-wrap').addEventListener('click', e => {
+  if (e.target === document.getElementById('rec-library-modal-wrap')) closeRecLibraryModal();
+});
 
 function selectOpenSession() {
   closeRecPickerModal();
@@ -2200,6 +2228,8 @@ function startRecreation(id){
     showToast('NOT ENOUGH POINTS', 'red');
     return;
   }
+  
+  closeRecLibraryModal();
   
   S.points -= cost;
   S.daily.spentToday += cost;
