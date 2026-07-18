@@ -857,29 +857,26 @@ body{
         <input type="text" class="modal-input" id="rec-tpl-name" placeholder="Anime, Gaming..." maxlength="30" style="width:100%"/>
       </div>
       <div style="margin-bottom:12px">
-        <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">CATEGORY</label>
-        <select class="modal-input" id="rec-tpl-cat" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px">
+        <select class="modal-input" id="rec-tpl-cat" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px" onchange="updateRecTplCost()">
           <option>Entertainment</option>
           <option>Gaming</option>
           <option>Social Media</option>
           <option>Movies / TV</option>
           <option>Music</option>
-          <option>Reading</option>
           <option>Shopping</option>
           <option>Food</option>
           <option>Browsing</option>
-          <option>Learning</option>
           <option>Other</option>
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
         <div>
           <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">MINUTES</label>
-          <input type="number" class="modal-input" id="rec-tpl-mins" placeholder="30" min="1" style="width:100%" />
+          <input type="number" class="modal-input" id="rec-tpl-mins" placeholder="30" min="1" style="width:100%" oninput="updateRecTplCost()" />
         </div>
         <div>
-          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">POINT COST</label>
-          <input type="number" class="modal-input" id="rec-tpl-pts" placeholder="40" min="0" style="width:100%" />
+          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">POINT COST (AUTO)</label>
+          <input type="text" class="modal-input" id="rec-tpl-pts" placeholder="0" readonly style="width:100%; opacity:0.7; cursor:not-allowed;" />
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-top:10px;border-top:1px solid var(--border)">
@@ -901,36 +898,28 @@ body{
   <div class="modal-box">
     <div class="modal-top-bar amber"></div>
     <div class="modal-inner">
-      <div class="modal-title" style="color:var(--amber)">⚡ CUSTOM SESSION</div>
+      <div class="modal-title" style="color:var(--amber)">⚡ OPEN SESSION</div>
       <div style="margin-bottom:12px">
-        <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">NAME</label>
+        <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">NAME (OPTIONAL)</label>
         <input type="text" class="modal-input" id="rec-custom-name" placeholder="Movie, Hangout..." maxlength="30" style="width:100%" />
       </div>
       <div style="margin-bottom:12px">
         <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">CATEGORY</label>
-        <select class="modal-input" id="rec-custom-cat" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px">
+        <select class="modal-input" id="rec-custom-cat" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px" onchange="updateOpenSessionEstimate()">
           <option>Entertainment</option>
           <option>Gaming</option>
           <option>Social Media</option>
           <option>Movies / TV</option>
           <option>Music</option>
-          <option>Reading</option>
           <option>Shopping</option>
           <option>Food</option>
           <option>Browsing</option>
-          <option>Learning</option>
           <option>Other</option>
         </select>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-        <div>
-          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">MINUTES</label>
-          <input type="number" class="modal-input" id="rec-custom-mins" placeholder="120" min="1" style="width:100%" />
-        </div>
-        <div>
-          <label class="form-label" style="display:block;margin-bottom:4px;font-size:10px;color:var(--text3)">POINT COST</label>
-          <input type="number" class="modal-input" id="rec-custom-pts" placeholder="100" min="0" style="width:100%" />
-        </div>
+      <div style="margin-bottom:20px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;text-align:center;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-family:var(--font-hud)">EST. AFFORDABLE TIME</div>
+        <div id="rec-custom-estimate" style="font-size:18px;color:var(--neon);font-family:var(--font-ui);letter-spacing:1px">--:--</div>
       </div>
       <div class="modal-btns">
         <button class="modal-btn-cancel" onclick="closeRecCustomModal()">CANCEL</button>
@@ -1008,6 +997,17 @@ const DEFAULT_ACTIONS = [
   {id:'wake',       name:'Wake',        pts:10, desc:'On time',          once:true,  flag:'wake'},
   {id:'sleep',      name:'Sleep',       pts:10, desc:'On schedule',      once:true,  flag:'sleep'},
 ];
+const DEFAULT_RECREATION_CATEGORIES = [
+  { id: 'cat_entertainment', displayName: 'Entertainment', costPerMinute: 1.5, enabled: true },
+  { id: 'cat_gaming', displayName: 'Gaming', costPerMinute: 1.5, enabled: true },
+  { id: 'cat_social', displayName: 'Social Media', costPerMinute: 2.0, enabled: true },
+  { id: 'cat_movies', displayName: 'Movies / TV', costPerMinute: 1.0, enabled: true },
+  { id: 'cat_music', displayName: 'Music', costPerMinute: 0.5, enabled: true },
+  { id: 'cat_shopping', displayName: 'Shopping', costPerMinute: 2.5, enabled: true },
+  { id: 'cat_food', displayName: 'Food', costPerMinute: 1.0, enabled: true },
+  { id: 'cat_browsing', displayName: 'Browsing', costPerMinute: 1.5, enabled: true },
+  { id: 'cat_other', displayName: 'Other', costPerMinute: 1.0, enabled: true }
+];
 
 const DEFAULT = {
   points:0, lifetimePoints:0, lastUpdated: 0,
@@ -1023,6 +1023,7 @@ const DEFAULT = {
   },
   plans:[], actions:[], logs:[],
   recreationTemplates:[],
+  recreationCategories: structuredClone(DEFAULT_RECREATION_CATEGORIES),
   activeRecreation:null
 };
 
@@ -1033,7 +1034,17 @@ function loadState(){
     const saved = JSON.parse(raw);
     const today = new Date().toDateString();
     
+    if(!saved.recreationCategories || !saved.recreationCategories.length) saved.recreationCategories = structuredClone(DEFAULT_RECREATION_CATEGORIES);
     if(!saved.recreationTemplates) saved.recreationTemplates = [];
+    else {
+      saved.recreationTemplates.forEach(t => {
+        if (!t.categoryId) {
+          const matched = saved.recreationCategories.find(c => c.displayName === t.category);
+          t.categoryId = matched ? matched.id : 'cat_other';
+          if (t.pts !== undefined && !t.overrideCost) t.overrideCost = true;
+        }
+      });
+    }
     if(!saved.hasOwnProperty('activeRecreation')) saved.activeRecreation = null;
 
     if(!saved.daily || saved.daily.date !== today){
@@ -1301,7 +1312,28 @@ function renderLogs(){
     let bodyEl = '';
     const reversible = (l.reversible !== false);
 
-    if (l.logType === 'rec_start') {
+    if (l.logType === 'rec_planned_start' || l.logType === 'rec_open_start') {
+      const name = escHtml((l.type === 'open' || l.logType === 'rec_open_start' ? '⚡ ' : '') + (l.templateName || 'SESSION'));
+      const time = l.scheduledMinutes != null ? l.scheduledMinutes + ' MIN' : 'OPEN';
+      const cost = l.scheduledCost != null ? l.scheduledCost : 0;
+      ptsEl = `<span class="log-pts" style="color:var(--amber);font-size:12px;font-family:var(--font-ui);text-shadow:none">▶</span>`;
+      bodyEl = `<div class="log-body">
+        <div class="log-action" style="color:var(--text);letter-spacing:0.05em">${name}</div>
+        <div class="log-note" style="color:var(--text3);font-family:var(--font-hud);font-size:10px">${l.logType === 'rec_open_start' ? 'OPEN SESSION STARTED' : ('SCHEDULED: ' + time + ' · -' + cost + ' PTS')}</div>
+        <div class="log-time">${dateStr} · ${tStr}</div>
+      </div>`;
+    } else if (l.logType === 'rec_planned_stop' || l.logType === 'rec_open_stop') {
+      const name = escHtml((l.logType === 'rec_open_stop' ? '⚡ ' : '') + (l.templateName || 'SESSION'));
+      const refund = (l.logType === 'rec_planned_stop' && l.pts > 0) ? ` <span style="color:var(--cyan)">[+${l.pts} PTS REFUND]</span>` : '';
+      const finalCost = l.totalCost != null ? ` · -${l.totalCost} PTS` : '';
+      const elapsed = l.elapsedMinutes != null ? `${l.elapsedMinutes} MIN` : '';
+      ptsEl = `<span class="log-pts" style="color:var(--text3);font-size:12px;font-family:var(--font-ui);text-shadow:none">■</span>`;
+      bodyEl = `<div class="log-body">
+        <div class="log-action" style="color:var(--text3);letter-spacing:0.05em">${name}</div>
+        <div class="log-note" style="color:var(--text3);font-family:var(--font-hud);font-size:10px">ELAPSED: ${elapsed}${finalCost}${refund}</div>
+        <div class="log-time">${dateStr} · ${tStr}</div>
+      </div>`;
+    } else if (l.logType === 'rec_start') {
       const name = escHtml((l.custom ? '⚡ ' : '') + (l.templateName || 'SESSION'));
       const time = l.scheduledMinutes != null ? l.scheduledMinutes + ' MIN' : '';
       const cost = l.scheduledCost != null ? l.scheduledCost : Math.abs(l.pts);
@@ -1871,36 +1903,55 @@ document.getElementById('edit-action-pts').addEventListener('keydown',e=>{
 
 let recTimerInterval = null;
 
-function formatRecTime(ms) {
+function formatRecTime(ms, includeHours = false) {
   const isNegative = ms < 0;
   const absMs = Math.abs(ms);
   const totalSeconds = Math.floor(absMs / 1000);
-  const m = Math.floor(totalSeconds / 60);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
   const mStr = m.toString().padStart(2, '0');
   const sStr = s.toString().padStart(2, '0');
-  return (isNegative ? '-' : '') + mStr + ':' + sStr;
+  const hStr = h > 0 ? h.toString().padStart(2, '0') + ':' : (includeHours ? '00:' : '');
+  return (isNegative ? '-' : '') + hStr + mStr + ':' + sStr;
 }
 
 function tickRecTimer() {
   if(!S.activeRecreation) return;
   const elapsedMs = Date.now() - S.activeRecreation.startedAt;
-  const scheduledMs = S.activeRecreation.scheduledMinutes * 60000;
-  const remainingMs = scheduledMs - elapsedMs;
-  
   const display = document.getElementById('rec-timer-display');
   const meta = document.getElementById('rec-active-meta');
   
-  if (remainingMs <= 0) {
-    display.textContent = '00:00';
-    meta.textContent = 'SESSION COMPLETE';
-    meta.style.color = 'var(--neon)';
-    meta.style.fontWeight = 'bold';
+  if (S.activeRecreation.type === 'open') {
+    display.textContent = formatRecTime(elapsedMs, true);
+    const rate = getCategoryRate(S.activeRecreation.category);
+    const cost = Math.floor((elapsedMs / 60000) * rate);
+    const cappedCost = Math.min(cost, S.points);
+    
+    if (cost >= S.points && S.points > 0) {
+      meta.innerHTML = `LIVE COST: ${cappedCost} PTS <span style="color:var(--red)">[BUDGET CAP REACHED]</span>`;
+      meta.style.color = 'var(--amber)';
+      meta.style.fontWeight = 'bold';
+    } else {
+      meta.textContent = `LIVE COST: ${cappedCost} PTS`;
+      meta.style.color = 'var(--neon)';
+      meta.style.fontWeight = 'bold';
+    }
   } else {
-    display.textContent = formatRecTime(remainingMs);
-    meta.textContent = 'SCHEDULED: ' + S.activeRecreation.scheduledMinutes + ' MIN · ' + S.activeRecreation.scheduledCost + ' PTS';
-    meta.style.color = 'var(--text3)';
-    meta.style.fontWeight = 'normal';
+    const scheduledMs = S.activeRecreation.scheduledMinutes * 60000;
+    const remainingMs = scheduledMs - elapsedMs;
+    
+    if (remainingMs <= 0) {
+      display.textContent = '00:00';
+      meta.textContent = 'SESSION COMPLETE';
+      meta.style.color = 'var(--neon)';
+      meta.style.fontWeight = 'bold';
+    } else {
+      display.textContent = formatRecTime(remainingMs);
+      meta.textContent = 'SCHEDULED: ' + S.activeRecreation.scheduledMinutes + ' MIN · ' + S.activeRecreation.scheduledCost + ' PTS';
+      meta.style.color = 'var(--text3)';
+      meta.style.fontWeight = 'normal';
+    }
   }
 }
 
@@ -1933,7 +1984,7 @@ function renderRecreation(){
           <div>
             <div class="rec-cat-badge">${t.category}</div>
             <div class="rec-name">${t.name}</div>
-            <div class="rec-meta">${t.minutes} MIN · ${t.pts} PTS</div>
+            <div class="rec-meta">${t.minutes} MIN · ${(t.overrideCost && t.pts !== undefined) ? t.pts : Math.round(t.minutes * getCategoryRate(t.category))} PTS</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3);font-size:14px;background:none;border:none;cursor:pointer" onclick="openTemplateModal('${t.id}')">✎</button>
@@ -1947,6 +1998,26 @@ function renderRecreation(){
 }
 
 let editingRecTemplateId = null;
+
+function getCategoryRate(catName) {
+  const cat = S.recreationCategories.find(c => c.displayName === catName);
+  return cat ? cat.costPerMinute : 1;
+}
+
+function updateRecTplCost() {
+  if (editingRecTemplateId) {
+    const t = S.recreationTemplates.find(x => x.id === editingRecTemplateId);
+    if (t && t.overrideCost && t.pts !== undefined) {
+      document.getElementById('rec-tpl-pts').value = t.pts;
+      return;
+    }
+  }
+  const cat = document.getElementById('rec-tpl-cat').value;
+  const mins = Math.floor(Number(document.getElementById('rec-tpl-mins').value)) || 0;
+  const rate = getCategoryRate(cat);
+  document.getElementById('rec-tpl-pts').value = Math.round(mins * rate);
+}
+
 function openTemplateModal(templateId = null){
   editingRecTemplateId = (typeof templateId === 'string') ? templateId : null;
   const title = document.getElementById('rec-template-modal-title');
@@ -1963,10 +2034,11 @@ function openTemplateModal(templateId = null){
     const t = S.recreationTemplates.find(x => x.id === editingRecTemplateId);
     if(t) {
       nameInp.value = t.name;
-      catInp.value = t.category;
+      catInp.value = t.categoryId ? (S.recreationCategories.find(c=>c.id === t.categoryId)?.displayName || 'Other') : t.category;
       minsInp.value = t.minutes;
-      ptsInp.value = t.pts;
       actInp.checked = !!t.active;
+      if (t.overrideCost && t.pts !== undefined) ptsInp.value = t.pts;
+      else updateRecTplCost();
     }
   } else {
     title.textContent = 'CREATE TEMPLATE';
@@ -1974,8 +2046,8 @@ function openTemplateModal(templateId = null){
     nameInp.value = '';
     catInp.value = 'Entertainment';
     minsInp.value = '30';
-    ptsInp.value = '40';
     actInp.checked = true;
+    updateRecTplCost();
   }
   document.getElementById('rec-template-modal-wrap').classList.add('open');
 }
@@ -1999,34 +2071,55 @@ function deleteRecTemplate(){
 
 function saveRecTemplate(){
   const name = document.getElementById('rec-tpl-name').value.trim();
-  const cat = document.getElementById('rec-tpl-cat').value;
+  const catName = document.getElementById('rec-tpl-cat').value;
+  const matchedCat = S.recreationCategories.find(c => c.displayName === catName);
+  const catId = matchedCat ? matchedCat.id : 'cat_other';
   const mins = Math.floor(Number(document.getElementById('rec-tpl-mins').value));
-  const pts = Math.floor(Number(document.getElementById('rec-tpl-pts').value));
   const active = document.getElementById('rec-tpl-active').checked;
   
   if(!name){showToast('NAME REQUIRED', 'red'); return;}
   if(mins < 1){showToast('MINUTES MUST BE >= 1', 'red'); return;}
-  if(pts < 0){showToast('POINTS CANNOT BE NEGATIVE', 'red'); return;}
   
   if(editingRecTemplateId){
     const t = S.recreationTemplates.find(x => x.id === editingRecTemplateId);
     if(t){
-      t.name = name; t.category = cat; t.minutes = mins; t.pts = pts; t.active = active;
+      t.name = name; t.categoryId = catId; t.category = catName; t.minutes = mins; t.active = active;
+      if (!t.overrideCost) delete t.pts;
     }
   } else {
     S.recreationTemplates.push({
       id: 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-      name, category: cat, minutes: mins, pts, active, deleted: false
+      name, categoryId: catId, category: catName, minutes: mins, active, deleted: false
     });
   }
   saveState(); renderRecreation(); closeRecTemplateModal();
 }
 
+function updateOpenSessionEstimate() {
+  const catName = document.getElementById('rec-custom-cat').value;
+  const rate = getCategoryRate(catName);
+  const estEl = document.getElementById('rec-custom-estimate');
+  if (rate <= 0) {
+    estEl.textContent = 'UNLIMITED';
+    estEl.style.color = 'var(--cyan)';
+  } else {
+    const affordableMinutes = Math.floor(S.points / rate);
+    if (affordableMinutes <= 0) {
+      estEl.textContent = '0 MIN (NO FUNDS)';
+      estEl.style.color = 'var(--red)';
+    } else {
+      const h = Math.floor(affordableMinutes / 60);
+      const m = affordableMinutes % 60;
+      estEl.textContent = (h > 0 ? h + 'H ' : '') + m + 'M';
+      estEl.style.color = 'var(--neon)';
+    }
+  }
+}
+
 function openCustomRecModal(){
   document.getElementById('rec-custom-name').value = '';
   document.getElementById('rec-custom-cat').value = 'Entertainment';
-  document.getElementById('rec-custom-mins').value = '60';
-  document.getElementById('rec-custom-pts').value = '50';
+  updateOpenSessionEstimate();
   document.getElementById('rec-custom-modal-wrap').classList.add('open');
 }
 
@@ -2042,12 +2135,12 @@ function startRecreation(id){
   const t = S.recreationTemplates.find(x => x.id === id);
   if (!t) return;
   
-  if (S.points < t.pts) {
+  const cost = (t.overrideCost && t.pts !== undefined) ? t.pts : Math.round(t.minutes * getCategoryRate(t.category));
+  if (S.points < cost) {
     showToast('NOT ENOUGH POINTS', 'red');
     return;
   }
   
-  const cost = t.pts;
   S.points -= cost;
   S.daily.spentToday += cost;
   
@@ -2058,7 +2151,8 @@ function startRecreation(id){
     scheduledMinutes: t.minutes,
     scheduledCost: cost,
     startedAt: Date.now(),
-    custom: false
+    custom: false,
+    type: 'planned'
   };
   
   S.logs.push({
@@ -2069,13 +2163,15 @@ function startRecreation(id){
     note: '',
     flag: null,
     reversible: false,
-    logType: 'rec_start',
+    logType: 'rec_planned_start',
     sessionId: S.activeRecreation.sessionId,
     templateName: t.name,
     category: t.category,
+    categoryId: t.categoryId,
     scheduledMinutes: t.minutes,
     scheduledCost: cost,
-    custom: false
+    custom: false,
+    type: 'planned'
   });
   
   saveState(); renderStats(); renderRecreation(); renderLogs();
@@ -2101,34 +2197,69 @@ function stopRecreation(){
   
   const ar = S.activeRecreation;
   const elapsedMs = Date.now() - ar.startedAt;
-  const scheduledMs = ar.scheduledMinutes * 60000;
-  const unusedMs = Math.max(0, scheduledMs - elapsedMs);
   
-  let refundRatio = 0;
-  if (scheduledMs > 0) {
-    refundRatio = unusedMs / scheduledMs;
+  let finalPtsChange = 0;
+  let logType = '';
+  let logAction = '';
+  let toastMsg = '';
+  let toastColor = 'cyan';
+  let unusedMs = 0;
+  
+  if (ar.type === 'open') {
+    const rate = getCategoryRate(ar.category);
+    const cost = Math.floor((elapsedMs / 60000) * rate);
+    const cappedCost = Math.min(cost, S.points);
+    finalPtsChange = -cappedCost;
+    S.points -= cappedCost;
+    S.daily.spentToday += cappedCost;
+    
+    logType = 'rec_open_stop';
+    logAction = 'Stopped: ⚡ ' + ar.templateName;
+    
+    if (cost >= S.points + cappedCost && S.points === 0) {
+      toastMsg = 'BUDGET CAP REACHED · -' + cappedCost + ' PTS';
+      toastColor = 'red';
+    } else {
+      toastMsg = 'SESSION STOPPED · -' + cappedCost + ' PTS';
+    }
+  } else {
+    const scheduledMs = ar.scheduledMinutes * 60000;
+    unusedMs = Math.max(0, scheduledMs - elapsedMs);
+    let refundRatio = 0;
+    if (scheduledMs > 0) refundRatio = unusedMs / scheduledMs;
+    const refundedPts = Math.floor(ar.scheduledCost * refundRatio);
+    
+    finalPtsChange = refundedPts;
+    S.points += refundedPts;
+    S.daily.spentToday -= refundedPts;
+    
+    logType = 'rec_planned_stop';
+    logAction = 'Stopped: ' + ar.templateName + (refundedPts > 0 ? (' (Refund: +' + refundedPts + ')') : '');
+    
+    if (refundedPts > 0) {
+      toastMsg = 'SESSION STOPPED · +' + refundedPts + ' PTS REFUNDED';
+    } else {
+      toastMsg = 'SESSION COMPLETED';
+    }
   }
-  
-  const refundedPts = Math.floor(ar.scheduledCost * refundRatio);
-  
-  S.points += refundedPts;
-  S.daily.spentToday -= refundedPts; 
   
   S.logs.push({
     id: 'rec_stop_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-    action: 'Stopped: ' + (ar.custom ? '⚡ ' : '') + ar.templateName + (refundedPts > 0 ? (' (Refund: +' + refundedPts + ')') : ''),
-    pts: refundedPts,
+    action: logAction,
+    pts: finalPtsChange,
     ts: Date.now(),
     note: '',
     flag: null,
     reversible: false,
-    logType: 'rec_stop',
+    logType: logType,
     sessionId: ar.sessionId,
     templateName: ar.templateName,
     category: ar.category,
+    categoryId: ar.categoryId,
     elapsedMinutes: Math.floor(elapsedMs / 60000),
+    elapsedMilliseconds: elapsedMs,
     unusedMinutes: Math.floor(unusedMs / 60000),
-    refundedPts: refundedPts
+    totalCost: ar.type === 'open' ? Math.abs(finalPtsChange) : ar.scheduledCost - finalPtsChange
   });
   
   S.activeRecreation = null;
@@ -2139,58 +2270,45 @@ function stopRecreation(){
   
   saveState(); renderStats(); renderRecreation(); renderLogs();
   
-  if (refundedPts > 0) {
-    spawnFloatingPts(refundedPts, true);
-    showToast('SESSION STOPPED · +' + refundedPts + ' PTS REFUNDED', 'cyan');
-  } else {
-    showToast('SESSION COMPLETED', 'cyan');
+  if (finalPtsChange > 0) {
+    spawnFloatingPts(finalPtsChange, true);
   }
+  showToast(toastMsg, toastColor);
 }
 
 function startCustomRec(){
   if (S.activeRecreation) return;
-  const name = document.getElementById('rec-custom-name').value.trim() || 'Custom Session';
-  const cat = document.getElementById('rec-custom-cat').value;
-  const mins = Math.floor(Number(document.getElementById('rec-custom-mins').value));
-  const pts = Math.floor(Number(document.getElementById('rec-custom-pts').value));
-  
-  if(mins < 1) { showToast('MINUTES MUST BE >= 1', 'red'); return; }
-  if(pts < 0) { showToast('POINTS CANNOT BE NEGATIVE', 'red'); return; }
-  
-  if (S.points < pts) {
-    showToast('NOT ENOUGH POINTS', 'red');
-    return;
-  }
-  
-  S.points -= pts;
-  S.daily.spentToday += pts;
+  const name = document.getElementById('rec-custom-name').value.trim() || 'Open Session';
+  const catName = document.getElementById('rec-custom-cat').value;
+  const matchedCat = S.recreationCategories.find(c => c.displayName === catName);
+  const catId = matchedCat ? matchedCat.id : 'cat_other';
   
   S.activeRecreation = {
     sessionId: 'rec_sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
     templateId: null,
     templateName: name,
-    category: cat,
-    scheduledMinutes: mins,
-    scheduledCost: pts,
+    category: catName,
+    categoryId: catId,
     startedAt: Date.now(),
-    custom: true
+    custom: true,
+    type: 'open'
   };
   
   S.logs.push({
     id: S.activeRecreation.sessionId,
     action: 'Started: ⚡ ' + name,
-    pts: -pts,
+    pts: 0,
     ts: Date.now(),
     note: '',
     flag: null,
     reversible: false,
-    logType: 'rec_start',
+    logType: 'rec_open_start',
     sessionId: S.activeRecreation.sessionId,
     templateName: name,
-    category: cat,
-    scheduledMinutes: mins,
-    scheduledCost: pts,
-    custom: true
+    category: catName,
+    categoryId: catId,
+    custom: true,
+    type: 'open'
   });
   
   closeRecCustomModal();
