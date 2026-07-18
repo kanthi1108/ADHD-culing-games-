@@ -568,11 +568,6 @@ body{
     </div>
   </div>
 
-  <div class="card" id="next-action-card" style="display:none">
-    <div class="card-header"><span class="card-title">// NEXT ACTION</span></div>
-    <div id="next-action-container"></div>
-  </div>
-
   <div class="card">
     <div class="card-header">
       <span class="card-title">// ACTION TERMINAL</span>
@@ -968,27 +963,26 @@ function getStatusLabel(a){
 function renderActions(){
   const grid=document.getElementById('actions-list');
   grid.innerHTML='';
-  
-  const naCard = document.getElementById('next-action-card');
-  const naContainer = document.getElementById('next-action-container');
 
   if(!S.actions.length){
     grid.style.display='block';
     grid.innerHTML='<div class="log-empty" style="text-transform:none">NO ACTIONS DEFINED - Create actions to begin earning points.</div>';
     document.getElementById('actions-badge').textContent='0 ACTIONS';
     document.getElementById('actions-badge').className='badge badge-done';
-    naCard.style.display='none';
     return;
   }
   grid.style.display='';
   let doneCount=0,onceTotal=0;
   
-  const priorityNames = ['deep work', 'workout', 'diet', 'sleep', 'wake'];
+  let prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem('adhd_sys_ui_prefs')) || {}; } catch(e){}
+  if(!Array.isArray(prefs.priorityActionIds)) prefs.priorityActionIds = [];
+  
   const priorityActions = [];
   const otherActions = [];
 
   S.actions.forEach((a,i) => {
-    if(priorityNames.includes(a.name.toLowerCase())) priorityActions.push({a,i});
+    if(prefs.priorityActionIds.includes(a.id)) priorityActions.push({a,i});
     else otherActions.push({a,i});
   });
 
@@ -1008,6 +1002,23 @@ function renderActions(){
     editTrigger.innerHTML='✎';
     editTrigger.setAttribute('aria-label','edit '+a.name);
     editTrigger.addEventListener('click',e=>{e.stopPropagation();openEditActionModal(i);});
+    
+    const isPriority = prefs.priorityActionIds.includes(a.id);
+    const prioTrigger=document.createElement('button');
+    prioTrigger.className='action-edit-trigger';
+    prioTrigger.style.right='32px';
+    prioTrigger.innerHTML=isPriority?'⭐':'☆';
+    prioTrigger.setAttribute('aria-label','toggle priority');
+    prioTrigger.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(isPriority){
+        prefs.priorityActionIds = prefs.priorityActionIds.filter(id => id !== a.id);
+      } else {
+        prefs.priorityActionIds.push(a.id);
+      }
+      localStorage.setItem('adhd_sys_ui_prefs', JSON.stringify(prefs));
+      renderActions();
+    });
 
     card.innerHTML=`
       <span class="action-card-name">${escHtml(a.name)}</span>
@@ -1018,6 +1029,7 @@ function renderActions(){
         ${label?`<span class="action-card-status" style="position:static;margin-top:8px;margin-left:auto">${label}</span>`:''}
       </div>`;
     card.appendChild(editTrigger);
+    card.appendChild(prioTrigger);
 
     if(!disabled){
       card.addEventListener('click',()=>{
@@ -1087,52 +1099,6 @@ function renderActions(){
   } else {
     badge.textContent='READY';
     badge.className='badge badge-active';
-  }
-
-  let best = null;
-  for(const name of priorityNames){
-    const a = S.actions.find(x => x.name.toLowerCase() === name);
-    if(a && !isDisabled(a)){ best = a; break; }
-  }
-  
-  if(!best){
-    const unfinished = S.actions.filter(a => !isDisabled(a));
-    if(unfinished.length > 0){
-      best = unfinished.reduce((prev, curr) => (prev.pts > curr.pts) ? prev : curr);
-    }
-  }
-  
-  if(best){
-    naCard.style.display = 'block';
-    naContainer.innerHTML = '';
-    
-    const card=document.createElement('div');
-    card.className='action-card';
-    card.style.borderColor = 'var(--neon)';
-    card.style.borderWidth = '1px';
-    card.style.background = 'var(--bg3)';
-    
-    card.innerHTML=`
-      <span class="action-card-name" style="color:var(--neon)">${escHtml(best.name)}</span>
-      <span class="action-card-pts">+${best.pts} PTS</span>
-      ${best.desc?`<span class="action-card-desc">${escHtml(best.desc)}</span>`:''}
-      <div style="margin-top:12px;width:100%">
-        <button style="width:100%;padding:10px;background:var(--neon-dim);border:1px solid var(--neon);color:var(--neon);font-family:var(--font-hud);border-radius:var(--radius-sm);cursor:pointer;font-weight:bold;letter-spacing:0.1em;transition:background 0.2s">START ACTION</button>
-      </div>`;
-      
-    const btn = card.querySelector('button');
-    btn.addEventListener('mouseenter', () => btn.style.background = 'var(--neon-b)');
-    btn.addEventListener('mouseleave', () => btn.style.background = 'var(--neon-dim)');
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      card.classList.add('logging');
-      card.addEventListener('animationend',()=>card.classList.remove('logging'),{once:true});
-      triggerAction(best);
-    });
-    
-    naContainer.appendChild(card);
-  } else {
-    naCard.style.display = 'none';
   }
 }
 
