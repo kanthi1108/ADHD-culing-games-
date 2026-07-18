@@ -628,7 +628,7 @@ body{
     <div class="card-header" style="display:flex;justify-content:space-between">
       <span class="card-title">RECREATION ENGINE</span>
       <div style="display:flex;gap:8px">
-        <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3)" onclick="openCustomRecModal()" title="Custom Session">⚡</button>
+        <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3)" onclick="openRecPickerModal()" title="Start Recreation">⚡</button>
         <button class="action-edit-trigger" style="position:static;opacity:1;color:var(--text3)" onclick="openTemplateModal()">+</button>
       </div>
     </div>
@@ -889,6 +889,44 @@ body{
       <div class="modal-btns">
         <button class="modal-btn-cancel" onclick="closeRecTemplateModal()">CANCEL</button>
         <button class="modal-btn-confirm cyan" onclick="saveRecTemplate()">SAVE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="rec-picker-modal-wrap" class="modal-overlay">
+  <div class="modal-box" style="max-width:340px">
+    <div class="modal-top-bar" style="background:var(--neon)"></div>
+    <div class="modal-inner">
+      <div class="modal-title" style="color:var(--text);margin-bottom:8px">START RECREATION</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:20px;text-align:center">Choose how you want to begin.</div>
+      
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;margin-bottom:15px">
+        <div style="color:var(--neon);font-size:14px;font-weight:bold;margin-bottom:6px">📋 Planned Session</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.4">I already know approximately how long this activity will take.</div>
+        <ul style="font-size:10px;color:var(--text3);margin:0 0 15px 15px;padding:0;line-height:1.6">
+          <li>Uses Templates</li>
+          <li>Fixed duration</li>
+          <li>Automatic cost</li>
+          <li>Refunds unused time</li>
+        </ul>
+        <button class="plan-action-btn wdr" style="width:100%;font-size:12px;padding:8px" onclick="selectPlannedSession()">CONTINUE</button>
+      </div>
+      
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:15px;margin-bottom:20px">
+        <div style="color:var(--amber);font-size:14px;font-weight:bold;margin-bottom:6px">⏱ Open Session</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.4">I don't know how long this activity will take.</div>
+        <ul style="font-size:10px;color:var(--text3);margin:0 0 15px 15px;padding:0;line-height:1.6">
+          <li>Starts immediately</li>
+          <li>Live timer</li>
+          <li>Live cost</li>
+          <li>No refunds</li>
+        </ul>
+        <button class="modal-btn-confirm amber" style="width:100%;font-size:12px;padding:8px" onclick="selectOpenSession()">CONTINUE</button>
+      </div>
+
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" onclick="closeRecPickerModal()" style="width:100%">CANCEL</button>
       </div>
     </div>
   </div>
@@ -2114,6 +2152,28 @@ function updateOpenSessionEstimate() {
       estEl.style.color = 'var(--neon)';
     }
   }
+}
+
+function openRecPickerModal() {
+  document.getElementById('rec-picker-modal-wrap').classList.add('open');
+}
+
+function closeRecPickerModal() {
+  document.getElementById('rec-picker-modal-wrap').classList.remove('open');
+}
+
+document.getElementById('rec-picker-modal-wrap').addEventListener('click', e => {
+  if (e.target === document.getElementById('rec-picker-modal-wrap')) closeRecPickerModal();
+});
+
+function selectPlannedSession() {
+  closeRecPickerModal();
+  document.getElementById('recreation-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function selectOpenSession() {
+  closeRecPickerModal();
+  openCustomRecModal();
 }
 
 function openCustomRecModal(){
